@@ -120,7 +120,7 @@ while(( ${ReF} <= 0 ))
 do
 #-------------------------------------------------------------------------------
 #Search for the zip file
-  files=$(find  -name "*.rar" -o -name "*.7z" -o -name "*.zip")
+  files=$(find -type f -name "*.rar" -o -name "*.7z" -o -name "*.zip")
   i=0
   for Tfilename in ${files}
   do
@@ -172,6 +172,7 @@ do
         echo "The Archive is deleted"
         else
         echo "Notice: The Archive haven't been deleted"
+	ReF=1
       fi
     done
 #End To Give Response
