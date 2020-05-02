@@ -172,6 +172,7 @@ do
         echo "The Archive is deleted"
         else
         echo "Notice: The Archive haven't been deleted"
+	ReF=1
       fi
     done
 #End To Give Response
@@ -190,9 +191,5 @@ unset Tfilename
 #Stop the Program  
 #------------------------------------------------------------  
 #End for the Unzipping processes
-if [ ${UnzipDel} != 1 ]
-then
-	ReF=1
-fi
 done
 IFS=$OLD_IFS
