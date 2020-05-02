@@ -144,7 +144,7 @@ do
 #Start to use Passwd
         c=1
 		extfile=${Inzip}${filelist[${Fc}]}
-		TOpzip=${Opzip}${filelist[${Fc}]%.*}
+		TOpzip=${Opzip}${filelist[${Fc}]%%.*}
 	    while(( `expr ${SizeArray} - ${c}` >= 0 ))
         do
           7z x -y -p"${passwd[`expr ${SizeArray} - ${c}`]}" ${extfile} -o"${TOpzip}"
