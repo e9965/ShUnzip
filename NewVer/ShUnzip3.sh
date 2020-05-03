@@ -24,7 +24,7 @@ IFS=$(echo -en "\n\b")
 #------------------------- [Unzip Function] ---------------------------------
 Inzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu/ASMR
 Opzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu/ASMR
-UnzipDel=0
+UnzipDel=1
 ReF=0
 Srun=0
 #------------------------ [End Unzip Function] -----------------------------
@@ -167,11 +167,11 @@ do
 		if [[ ${checkFc} == ${Checkfl} ]]
 		then
 			Flag=0
-			break
 			if [[ ${changeFc} < ${changefl} ]]
 			then
 			filelist[${dummy}]=${Fcfilelist[${i}]}
 			fi
+			break
 		fi
 		let "dummy++"
 		done
