@@ -24,7 +24,7 @@ IFS=$(echo -en "\n\b")
 #------------------------- [Unzip Function] ---------------------------------
 Inzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu/ASMR
 Opzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu/ASMR
-UnzipDel=1
+UnzipDel=0
 ReF=0
 Srun=0
 #------------------------ [End Unzip Function] -----------------------------
@@ -156,10 +156,22 @@ do
 	then
 	while(( ${dummy} <= ${tempc} ))
 		do
-		if [ ${Fcfilelist[${i}]%%.*} == ${filelist[${dummy}%%.*]} ]
+		checkFc=${Fcfilelist[${i}]%%.*}
+		checkfl=${filelist[${dummy}]%%.*}
+		changeFc=${Fcfilelist[${i}]##/*}
+		changefl=${filelist[${dummy}]##/*}
+		changeFc=${changFc##.*}
+		changefl=${changfl##.*}
+		changeFc=${changFc##0*}
+		changefl=${changfl##0*}		
+		if [[ ${checkFc} == ${Checkfl} ]]
 		then
 			Flag=0
 			break
+			if [[ ${changeFc} < ${changefl} ]]
+			then
+			filelist[${dummy}]=${Fcfilelist[${i}]}
+			fi
 		fi
 		let "dummy++"
 		done
