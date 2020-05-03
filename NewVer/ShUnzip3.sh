@@ -24,9 +24,11 @@ IFS=$(echo -en "\n\b")
 #------------------------- [Unzip Function] ---------------------------------
 Inzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu/ASMR
 Opzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu/ASMR
+Unzippedfilelist=$(dirname $(readlink -f "$0"))/Unzippedfilelist.ini
 UnzipDel=1
 ReF=0
 Srun=0
+checkstring=
 #------------------------ [End Unzip Function] -----------------------------
 #------------------------ [Password Region] ---------------------------------
 SizeArray=83
@@ -115,6 +117,15 @@ passwd[81]=cangku.moe
 passwd[82]=12345chen
 #---------------------- [End Password Region] ------------------------------
 #--------------------------- [Start Shell] ----------------------------------
+if [ ${UnzipDel} != 1 ]
+then
+	if [ ! -f "${Unzippedfilelist}" ]
+	then
+		checkstring=${cat ${Unzippedfilelist}}
+	else
+		touch ${Unzippedfilelist}
+	fi
+fi	
 cd "${Inzip}"
 while(( ${ReF} <= 0 ))
 #First While loop is for recursion [Unzip the zip form the parent zip]
@@ -135,13 +146,13 @@ do
 	let "i++"
 	checktime=${#sfilecheck[@]}
 	checkdummy=0
-	checkstring=${sfilecheck[0]}
-	while(( ${checkdummy} < checktime))
+	checkstring=${checkstring}${sfilecheck[0]}
+	while(( ${checkdummy} < ${checktime} ))
 	do
-	checkstring=${checkstring}|${sfilecheck[${checkdummy}]}
+	checkstring="${checkstring}|${sfilecheck[${checkdummy}]}"
 	let "checkdummy++"
 	done
-	files=$(find -type f -name "*.rar*" -o -name "*.7z*" -o -name "*.zip*"|grep -v -E "${checkstring}")
+	files=$(find -type f -name "*.rar*" -o -name "*.7z*" -o -name "*.zip*"|grep -v -E ${checkstring})
   fi
   g=0
   for Tfilename in ${files}
@@ -158,13 +169,9 @@ do
 		do
 		checkFc=${Fcfilelist[${i}]%%.*}
 		checkfl=${filelist[${dummy}]%%.*}
-		changeFc=${Fcfilelist[${i}]##/*}
-		changefl=${filelist[${dummy}]##/*}
-		changeFc=${changFc##.*}
-		changefl=${changfl##.*}
-		changeFc=${changFc##0*}
-		changefl=${changfl##0*}		
-		if [[ ${checkFc} == ${Checkfl} ]]
+		changeFc=${Fcfilelist[${i}]##*.}
+		changefl=${filelist[${dummy}]##*.}
+		if [[ ${checkFc} == ${checkfl} ]]
 		then
 			Flag=0
 			if [[ ${changeFc} < ${changefl} ]]
@@ -174,11 +181,11 @@ do
 			break
 		fi
 		let "dummy++"
-		done
+	done
 	if  [ ${Flag} == 1 ]
 	then
+		filelist[${g}]=${Fcfilelist[$i]}
 		let "g++"
-		filelist[${g}]=${Fcfilelist[$i]}		
 	fi
 	else
 	filelist[0]=${Fcfilelist[${i}]}
@@ -187,9 +194,7 @@ do
 #End Ver3解壓分卷文件
 	if [ ${UnzipDel} != 1 ]
 	then
-	sfilecheck[${i}]=${sfilecheck[${i}]//(/}
-	sfilecheck[${i}]=${sfilecheck[${i}]//)/}
-	sfilecheck[${i}]=.${sfilecheck[${i}]}
+	sfilecheck[${i}]=.${Fcfilelist[${i}]}
 	fi
 #End Ver3不刪除文件依然能解壓多層
 	let "i++"
@@ -235,14 +240,11 @@ do
       elif [ ${UnzipDel} == 1 ]
         then
 		g1filename=${filelist[${Fc}]%%.*}
-		delpath=${filelist[${Fc}]#/*}
-		groupfilename=${g1filename##/*}
+		delpath=${filelist[${Fc}]#*/}
+		groupfilename=${g1filename##*/}
 		i=0
-		for TNeedDel in ${ls|grep ^${groupfilename}}
-		do
-		extfile=${Inzip}${delpath}/${TNeedDel}
+		extfile=${Inzip}${delpath}/${groupfilename}.*
 		rm -f ${extfile}
-		done
         echo "The Archives are deleted"
         else
         echo "Notice: The Archive haven't been deleted"
@@ -266,4 +268,5 @@ unset Fcfilelist
 #------------------------------------------------------------  
 #End for the Unzipping processes
 done
+echo "${checkstring}" > ${Unzippedfilelist}
 IFS=$OLD_IFS
