@@ -1,38 +1,39 @@
 #!/bin/bash
 OLD_IFS=$IFS
 IFS=$(echo -en "\n\b")
-#--------------------------- [Introduction] ---------------------------------
-#變量解釋:
-# [SizeArray] = 一共有多少密碼
-# [Passwd] = 密碼數組
-# [InZip] = 壓縮包目錄 
-# [Upzip] = 解壓後目錄
-# [UnzipDel] = 解壓後刪除源文件
+#--------------------------- [解释区域] ------------------------------------
+#ShUnzip: LinuxVer
+# [passwd] = 密码
+# [Inzip] = 压缩包目录   [目录末不要有根号]
+# [Upzip] = 解压后的目录 [目录末不要有根号]
+# [UnzipDel] = 解压后是否要删除压缩包
 #   {1:刪除} {0:不刪除}
-#
-# 如需新增密碼則在直接 [Password Region] 文末寫入
+#============================================================================
+#正确实例:
+#Inzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu
+#Unzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu
+#============================================================================
+#错误示例:
+#Inzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu/
+#Unzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu/
+#============================================================================
+# 如需新增密碼則在直接在下方 [Password Region] 文末寫入
 # 寫入方法:
-# SizeArray=n+1
 # passwd[n-1]="上一個密碼"
 # passwd[n]="新密碼"
+# 尝试密码的顺序: 从末到头 [n to 0]
+#============================================================================
 # 實例:
-# SizeArray=83
-# passwd[82]="12345chen"
-# passwd[83]="你的新密碼"
-# 解壓順序: [n] to [0]
-#------------------------- [End Introduction] -------------------------------
-#------------------------- [Unzip Variable] ---------------------------------
+# passwd[82]=哆啦A梦
+# passwd[83]=你的第一个新密碼
+# passwd[84]=你的第二个新密码
+#------------------------- [End 解释区域] -----------------------------------
+#------------------------- [压缩包/解压目录] --------------------------------
 Inzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu
 Opzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu
 UnzipDel=1
-#------------------------------ [Advanced] ----------------------------------
-Unzippedfilelist=$(dirname $(readlink -f "$0"))/Unzippedfilelist.ini
-ReF=0
-Srun=0
-checkstring=
-#------------------------ [End Unzip Variable] -----------------------------
+#------------------------- [End 压缩包/解压目录] ----------------------------
 #------------------------ [Password Region] ---------------------------------
-SizeArray=83
 passwd[0]=yhsxsx
 passwd[1]=没有节操的灵梦
 passwd[2]=毛玉mouyu
@@ -83,7 +84,7 @@ passwd[46]=benzi
 passwd[47]=Q10
 passwd[48]=tianshi2.com
 passwd[49]=180998244
-passwd[50]=ntr
+passwd[50]=456654
 passwd[51]=CR48
 passwd[52]=inori
 passwd[53]=BQ510
@@ -101,7 +102,7 @@ passwd[64]=忧郁的loli
 passwd[65]=当场身亡
 passwd[66]=大萝莉教
 passwd[67]=四散的尘埃
-passwd[68]=12345chen
+passwd[68]=123321
 passwd[69]=say花火
 passwd[70]=hacg.me
 passwd[71]=爱吃瓜的寒蝉同学
@@ -117,6 +118,13 @@ passwd[80]=WaterSolubilityC
 passwd[81]=cangku.moe
 passwd[82]=哆啦A梦
 #---------------------- [End Password Region] ------------------------------
+#------------------------------ [Advanced] ----------------------------------
+Unzippedfilelist=$(dirname $(readlink -f "$0"))/Unzippedfilelist.ini
+SizeArray=${#passwd[@]}
+ReF=0
+Srun=0
+checkstring=
+#------------------------ [End Unzip Variable] -----------------------------
 #--------------------------- [Function] ------------------------------------
 initialisedunziplist(){
     #Ojective: Preserve a List for the Archives which should no unzip again
