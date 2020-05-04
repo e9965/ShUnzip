@@ -21,15 +21,16 @@ IFS=$(echo -en "\n\b")
 # passwd[83]="你的新密碼"
 # 解壓順序: [n] to [0]
 #------------------------- [End Introduction] -------------------------------
-#------------------------- [Unzip Function] ---------------------------------
-Inzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu/ASMR
-Opzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu/ASMR
-Unzippedfilelist=$(dirname $(readlink -f "$0"))/Unzippedfilelist.ini
+#------------------------- [Unzip Variable] ---------------------------------
+Inzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu
+Opzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu
 UnzipDel=1
+#------------------------------ [Advanced] ----------------------------------
+Unzippedfilelist=$(dirname $(readlink -f "$0"))/Unzippedfilelist.ini
 ReF=0
 Srun=0
 checkstring=
-#------------------------ [End Unzip Function] -----------------------------
+#------------------------ [End Unzip Variable] -----------------------------
 #------------------------ [Password Region] ---------------------------------
 SizeArray=83
 passwd[0]=yhsxsx
@@ -93,17 +94,17 @@ passwd[57]=通宵狂魔技术宅
 passwd[58]=黙示
 passwd[59]=终点
 passwd[60]=琉璃神社
-passwd[61]=樱花树下实现
+passwd[61]=6172839465
 passwd[62]=扶她奶茶
 passwd[63]=忧郁的弟弟
 passwd[64]=忧郁的loli
 passwd[65]=当场身亡
 passwd[66]=大萝莉教
 passwd[67]=四散的尘埃
-passwd[68]=哆啦A梦
+passwd[68]=12345chen
 passwd[69]=say花火
 passwd[70]=hacg.me
-passwd[71]=当场身亡
+passwd[71]=爱吃瓜的寒蝉同学
 passwd[72]=acgngame
 passwd[73]=⑨
 passwd[74]=不要在线解压
@@ -114,26 +115,32 @@ passwd[78]=阿夸大天使
 passwd[79]=baimo
 passwd[80]=WaterSolubilityC
 passwd[81]=cangku.moe
-passwd[82]=12345chen
+passwd[82]=哆啦A梦
 #---------------------- [End Password Region] ------------------------------
-#--------------------------- [Start Shell] ----------------------------------
+#--------------------------- [Function] ------------------------------------
+initialisedunziplist(){
+    #Ojective: Preserve a List for the Archives which should no unzip again
 if [ ${UnzipDel} != 1 ]
 then
-	if [ ! -f "${Unzippedfilelist}" ]
-	then
-		checkstring=${cat ${Unzippedfilelist}}
-	else
-		touch ${Unzippedfilelist}
-	fi
-fi	
-cd "${Inzip}"
+    if [[ -e "${Unzippedfilelist}" ]]
+    then
+	checkstring=cat "${Unzippedfilelist}"
+    else
+	touch ${Unzippedfilelist}
+  	chmod -rwx ${Unzippedfilelist}
+    fi
+fi    
+}
+#--------------------------- [End Function] ---------------------------------
+#--------------------------- [Start Shell] ----------------------------------
+initialisedunziplist
+cd ${Inzip}
 while(( ${ReF} <= 0 ))
 #First While loop is for recursion [Unzip the zip form the parent zip]
 do
 #-------------------------------------------------------------------------------
 #Search for the zip file
-#begin Ver3不刪除文件依然能解壓多層
-#begin Ver3解壓分卷文件
+#begin Ver3不刪除文件依然能解壓多層=================================================
   if [ ${Srun} == 0 ]
   then
 	i=0
@@ -159,7 +166,7 @@ do
   do
 	filename=${Tfilename:1}
 	Fcfilelist[$i]=${filename}
-#Ver3解壓分卷文件 Idea [Groupping]
+#Ver3解壓分卷文件 Idea [Groupping]===================================================
     dummy=0
 	tempc=${g}
 	Flag=1
@@ -191,12 +198,12 @@ do
 	filelist[0]=${Fcfilelist[${i}]}
 	let "g++"
 	fi
-#End Ver3解壓分卷文件
+#End Ver3解壓分卷文件======================================================================
 	if [ ${UnzipDel} != 1 ]
 	then
 	sfilecheck[${i}]=.${Fcfilelist[${i}]}
 	fi
-#End Ver3不刪除文件依然能解壓多層
+#End Ver3不刪除文件依然能解壓多層=========================================================
 	let "i++"
   done
   Fc=${#filelist[@]}
@@ -216,18 +223,16 @@ do
         c=1
 		extfile=${Inzip}${filelist[${Fc}]}
 		TOpzip=${Opzip}${filelist[${Fc}]%%.*}
+		echo "Start Unzip ${filelist[${Fc}]##*/}"
 	    while(( `expr ${SizeArray} - ${c}` >= 0 ))
         do
-          7z x -y -p"${passwd[`expr ${SizeArray} - ${c}`]}" ${extfile} -o"${TOpzip}"
+          7z x -y -bsp1 -bso0 -bse0 -p"${passwd[`expr ${SizeArray} - ${c}`]}" -o"${TOpzip}" ${extfile}
           err=$?
-          if [ ${err} == 0 ]
+          if [ ${err} != 2 ]
             then
                 let "unzipsucc++"
                 echo "${passwd[`expr ${SizeArray} - ${c}`]} is correct!"
-                echo "Unzip Success!!"
                 break
-            else
-                echo "Failed~"
             fi
           let "c++"
         done
@@ -240,16 +245,17 @@ do
       elif [ ${UnzipDel} == 1 ]
         then
 		g1filename=${filelist[${Fc}]%%.*}
-		delpath=${filelist[${Fc}]#*/}
 		groupfilename=${g1filename##*/}
-		i=0
-		extfile=${Inzip}${delpath}/${groupfilename}.*
+		delpath=${extfile%/*}
+		extfile=${delpath}/${groupfilename}.*
 		rm -f ${extfile}
+		i=0
         echo "The Archives are deleted"
         else
         echo "Notice: The Archive haven't been deleted"
 		Srun=1
       fi
+      reset
     done
 #End To Give Response
 #----------------------------------------------------------
