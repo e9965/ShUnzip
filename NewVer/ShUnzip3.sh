@@ -4,18 +4,20 @@ IFS=$(echo -en "\n\b")
 #--------------------------- [解释区域] ------------------------------------
 #ShUnzip: LinuxVer
 # [passwd] = 密码
-# [Inzip] = 压缩包目录   [目录末不要有根号]
-# [Upzip] = 解压后的目录 [目录末不要有根号]
+# [Inzip] = 压缩包目录   [目录末不要有根号] [单引号包着]
+# [Upzip] = 解压后的目录 [目录末不要有根号] [单引号包着]
 # [UnzipDel] = 解压后是否要删除压缩包
 #   {1:刪除} {0:不刪除}
 #============================================================================
 #正确实例:
-#Inzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu
-#Unzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu
+#Inzip='D:\BaiduNetdiskDownload'
+#Unzip='H:\Voice'
 #============================================================================
 #错误示例:
-#Inzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu/
-#Unzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu/
+#Inzip='D:\BaiduNetdiskDownload\'
+#Unzip='H:\Voice\'                      [目录有根号]
+#Inzip="D:\BaiduNetdiskDownload"       [双引号]
+#Unzip="H:\Voice"
 #============================================================================
 # 如需新增密碼則在直接在下方 [Password Region] 文末寫入
 # 寫入方法:
@@ -29,8 +31,8 @@ IFS=$(echo -en "\n\b")
 # passwd[84]=你的第二个新密码
 #------------------------- [End 解释区域] -----------------------------------
 #------------------------- [压缩包/解压目录] --------------------------------
-Inzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu
-Opzip=/content/drive/Shared\ drives/KennyDrive/Download/CangKu
+Inzip=
+Opzip=
 UnzipDel=1
 #------------------------- [End 压缩包/解压目录] ----------------------------
 #------------------------ [Password Region] ---------------------------------
@@ -81,7 +83,7 @@ passwd[43]=20131225
 passwd[44]=RoC_1112@eyny
 passwd[45]=moe
 passwd[46]=benzi
-passwd[47]=Q10
+passwd[47]=123123
 passwd[48]=tianshi2.com
 passwd[49]=180998244
 passwd[50]=456654
@@ -142,7 +144,6 @@ fi
 #--------------------------- [End Function] ---------------------------------
 #--------------------------- [Start Shell] ----------------------------------
 initialisedunziplist
-cd ${Inzip}
 while(( ${ReF} <= 0 ))
 #First While loop is for recursion [Unzip the zip form the parent zip]
 do
@@ -152,11 +153,11 @@ do
   if [ ${Srun} == 0 ]
   then
 	i=0
-	files=$(find -type f -name "*.rar*" -o -name "*.7z*" -o -name "*.zip*")
+	files=$( find ${Inzip} -type f -name "*.rar*" -o -name "*.7z*" -o -name "*.zip*" )
   elif [ ${UnzipDel} == 1 ]
   then
 	i=0
-	files=$(find -type f -name "*.rar*" -o -name "*.7z*" -o -name "*.zip*")
+	files=$(find ${Inzip} -type f -name "*.rar*" -o -name "*.7z*" -o -name "*.zip*" ; find ${Opzip} -type f -name "*.rar*" -o -name "*.7z*" -o -name "*.zip*")
   else
 	let "i++"
 	checktime=${#sfilecheck[@]}
@@ -167,13 +168,12 @@ do
 	checkstring="${checkstring}|${sfilecheck[${checkdummy}]}"
 	let "checkdummy++"
 	done
-	files=$(find -type f -name "*.rar*" -o -name "*.7z*" -o -name "*.zip*"|grep -v -E ${checkstring})
+	files=$(find ${Inzip} -type f -name "*.rar*" -o -name "*.7z*" -o -name "*.zip*"|grep -v -E ${checkstring} ; find ${Opzip} -type f -name "*.rar*" -o -name "*.7z*" -o -name "*.zip*"|grep -v -E ${checkstring})
   fi
   g=0
   for Tfilename in ${files}
   do
-	filename=${Tfilename:1}
-	Fcfilelist[$i]=${filename}
+	Fcfilelist[$i]=${Tfilename}
 #Ver3解壓分卷文件 Idea [Groupping]===================================================
     dummy=0
 	tempc=${g}
@@ -229,12 +229,21 @@ do
 #----------------------------------------------------------
 #Start to use Passwd
         c=1
-		extfile=${Inzip}${filelist[${Fc}]}
-		TOpzip=${Opzip}${filelist[${Fc}]%%.*}
-		echo "Start Unzip ${filelist[${Fc}]##*/}"
+		extfile=${filelist[${Fc}]}
+		optpath=${filelist[${Fc}]%%.*}
+		if [[ ${optpath} =~ ${Opzip} ]]
+		then
+		truncatel=${#Opzip}
+		TOpzip=${Opzip}${optpath:${truncatel}}
+		else
+		TOpzip=${Opzip}/${optpath##*/}
+		fi
+		echo "${TOpzip}"
+		echo "Start Unzip ${filelist[${Fc}]##*/} ......"
+		echo "Trying Passwd......"
 	    while(( `expr ${SizeArray} - ${c}` >= 0 ))
         do
-          7z x -y -bsp1 -bso0 -bse0 -p"${passwd[`expr ${SizeArray} - ${c}`]}" -o"${TOpzip}" ${extfile}
+          7z x -y -r -bsp1 -bso0 -bse0 -p"${passwd[`expr ${SizeArray} - ${c}`]}" -o"${TOpzip}" ${extfile}
           err=$?
           if [ ${err} != 2 ]
             then
@@ -250,20 +259,16 @@ do
       if [ ${unzipsucc} == 0 ]
       then
         echo "All Passwd Are incorrect"
+		echo "Program Exited"
+		exit
       elif [ ${UnzipDel} == 1 ]
         then
-		g1filename=${filelist[${Fc}]%%.*}
-		groupfilename=${g1filename##*/}
-		delpath=${extfile%/*}
-		extfile=${delpath}/${groupfilename}.*
-		rm -f ${extfile}
+		rm -f ${filelist[${Fc}]}
 		i=0
         echo "The Archives are deleted"
         else
         echo "Notice: The Archive haven't been deleted"
-		Srun=1
       fi
-      reset
     done
 #End To Give Response
 #----------------------------------------------------------
@@ -278,6 +283,7 @@ unset Fcfilelist
   else
     ReF=1
   fi
+  Srun=1
 #Stop the Program  
 #------------------------------------------------------------  
 #End for the Unzipping processes
