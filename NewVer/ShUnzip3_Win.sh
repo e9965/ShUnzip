@@ -252,7 +252,7 @@ do
 		echo "Trying Passwd......"
 	    while(( `expr ${SizeArray} - ${c}` >= 0 ))
         do
-          7z x -y -bsp1 -bso0 -bse0 -p"${passwd[`expr ${SizeArray} - ${c}`]}" -o"${TOpzip}" ${extfile}
+          7z x -y -r -aoa -bsp1 -bso0 -bse0 -p"${passwd[`expr ${SizeArray} - ${c}`]}" -o"${TOpzip}" ${extfile}
           err=$?
           if [ ${err} != 2 ]
             then
