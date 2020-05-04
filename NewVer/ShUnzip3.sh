@@ -69,7 +69,7 @@ passwd[29]=lifaner.com
 passwd[30]=妮妙
 passwd[31]=发条奶茶
 passwd[32]=七曜苏醒
-passwd[33]=123456
+passwd[33]=levelplus
 passwd[34]=yaoying
 passwd[35]=gg
 passwd[36]=air
@@ -83,7 +83,7 @@ passwd[43]=20131225
 passwd[44]=RoC_1112@eyny
 passwd[45]=moe
 passwd[46]=benzi
-passwd[47]=123123
+passwd[47]=awsl
 passwd[48]=tianshi2.com
 passwd[49]=180998244
 passwd[50]=456654
@@ -104,7 +104,7 @@ passwd[64]=忧郁的loli
 passwd[65]=当场身亡
 passwd[66]=大萝莉教
 passwd[67]=四散的尘埃
-passwd[68]=123321
+passwd[68]=26842
 passwd[69]=say花火
 passwd[70]=hacg.me
 passwd[71]=爱吃瓜的寒蝉同学
@@ -243,7 +243,7 @@ do
 		echo "Trying Passwd......"
 	    while(( `expr ${SizeArray} - ${c}` >= 0 ))
         do
-          7z x -y -r -bsp1 -bso0 -bse0 -p"${passwd[`expr ${SizeArray} - ${c}`]}" -o"${TOpzip}" ${extfile}
+          7z x -y -r -bsp1 -bso0 -bse0 -aoa -p"${passwd[`expr ${SizeArray} - ${c}`]}" -o"${TOpzip}" ${extfile}
           err=$?
           if [ ${err} != 2 ]
             then
