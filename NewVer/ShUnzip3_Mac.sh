@@ -272,7 +272,7 @@ do
 		exit
       elif [ ${UnzipDel} == 1 ]
         then
-		rmfile=${filelist[${Fc}]%%.*}.
+		rmfile="${filelist[${Fc}]%%.*}."
 		rm -f ${rmfile}*
 		i=0
         echo "The Archives are deleted"
