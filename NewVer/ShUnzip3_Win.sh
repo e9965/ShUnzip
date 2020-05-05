@@ -1,6 +1,8 @@
 #!/bin/bash
 OLD_IFS=$IFS
 IFS=$(echo -en "\n\b")
+#---------------------------------------------------------------------------
+#5/5/2020:解決嚴重BUG: 修復解壓後無法刪除文件導致無限循環
 #--------------------------- [解释区域] ------------------------------------
 #ShUnzip: WindowsVer
 # [passwd] = 密码
@@ -247,7 +249,6 @@ do
 		else
 		TOpzip=${Opzip}/${optpath##*/}
 		fi
-		echo "${TOpzip}"
 		echo "Start Unzip ${filelist[${Fc}]##*/} ......"
 		echo "Trying Passwd......"
 	    while(( `expr ${SizeArray} - ${c}` >= 0 ))
@@ -272,7 +273,7 @@ do
 		exit
       elif [ ${UnzipDel} == 1 ]
         then
-		rmfile=${filelist[${Fc}]%%.*}.
+		rmfile="${filelist[${Fc}]%%.*}."
 		rm -f ${rmfile}*
 		i=0
         echo "The Archives are deleted"
