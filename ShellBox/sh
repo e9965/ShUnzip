@@ -156,6 +156,7 @@ SET_BASIC_ENV_VAR(){
 	if [[ ! -f "${HOME}/sh" ]]
 	then
 		ln -s ${SHELL_BOX_PATH}/sh ${HOME}/sh
+		[[ ${USEROS} == 1 ]] && rclone --help || curl https://rclone.org/install.sh | sudo bash
 		APT_INSTALL
 	fi
 	chmod +rwx ${APP_BIN}*
