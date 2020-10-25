@@ -52,7 +52,7 @@ APT_INSTALL(){
 	else
 		IFS=" "
 		source ${SHELL_BIN}ini.sh
-		for i in (p7zip-full p7zip-rar wget imagemagick curl base64 hexdump file rsync dos2unix)
+		for i in p7zip-full p7zip-rar wget imagemagick curl base64 hexdump file rsync dos2unix
 		do
 			apt-get install ${i} -y
 		done
