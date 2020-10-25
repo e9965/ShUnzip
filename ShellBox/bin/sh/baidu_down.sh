@@ -8,7 +8,6 @@ fileno=0
 [ -z ${KEYCOOKIES} ] && export KEYCOOKIES="$(echo $COOKIES | grep -oE 'BDUSS=([[:alnum:]]|[[:punct:]])+;') $(echo $COOKIES | grep -oE 'STOKEN=[[:alnum:]]+;')"
 [ -z ${BDSTOKEN} ] && export BDSTOKEN=$(curl -s --cookie "${KEYCOOKIES}" "https://pan.baidu.com/disk/home/" | grep -oE 'bdstoken[[:punct:]]+ [[:punct:]]+[[:alnum:]]+') && BDSTOKEN=${BDSTOKEN##*\'}
 [[ ${USER_OS} == 2 ]] && CONC_FLAG=0 || CONC_FLAG=2
-[[ ${CHOICE} == 1 ]] && OD=0
 if [[ ${OD} == 1 ]]
 then
 	DOWN_PATH=${TEMP_DOWN_PATH}
@@ -166,7 +165,7 @@ DOWNLOAD(){
 	    DRAWLINE
 	    sleep 2s && exit 2
 	fi
-	[[ ${OD} == 1 ]] && rclone move ${DOWN_PATH} OneDrive:/ -v --transfers=${MAXPARALLEL} --cache-chunk-size 16M --no-traverse --config "${RCLONE}"
+	[[ ${OD} == 1 ]] && [[ ${CHOICE} == 2 ]] && rclone move ${DOWN_PATH} OneDrive:/ -v --transfers=${MAXPARALLEL} --cache-chunk-size 16M --no-traverse --config "${RCLONE}"
 }
 BAIDU_DOWN_TITLE(){
 echo -e "${yellow} BaiduPCS-Go 辅助下载插件 ver0.3.0 | By:GetIntoBus ${plain}"
