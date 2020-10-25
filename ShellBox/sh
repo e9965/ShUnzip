@@ -1,0 +1,555 @@
+#!/bin/bash
+OLD_IFS=$IFS
+IFS=$(echo -en "\n\b")
+#-------------------------------------------------------------------
+#<程序基本運行函數>
+DRAWLINE(){
+	echo -e "${yellow}================================================================================${plain}"
+}
+INITIALIZATION(){
+	echo -e "${green}[INFO]${plain}開始初始化......"
+	echo -e "${green}[INFO]${plain}初始化&填寫配置時請勿關閉腳本, 否則需要刪除conf目錄並重新配置"
+	DRAWLINE
+	READ_BAIDU
+	READ_CONFIG
+	READ_PASSWD
+	SET_ENV_VAR
+	ONEDRIVE
+	echo -e "${green}[INFO]${plain}完成初始化"
+}
+CONC_PATH(){
+	a=$1
+	if [[ ${USER_OS} == 2 ]]
+	then
+		a=${a#*/} && a=${a#*/}
+		disk=${a:0:1} && disk=$(echo ${disk} | tr 'a-z' 'A-Z')
+		a=${disk}:${a:1} && a=${a////\\}
+	fi
+}
+INI_MKDIR(){
+	if [[ ! -d $1 ]]
+	then
+		mkdir $1
+	fi
+}
+ONEDRIVE(){
+	if [[ ${OD} == 1 ]]
+	then
+		echo -en "${yellow}[INPUT]${plain}输入【1】确认下载到Onedrive，否则跳过:"
+		read i
+		[ -z ${i} ] && OD=0
+	fi
+}
+APT_INSTALL(){
+	if [[ ${USER_OS} == 2 ]]
+	then
+		wget -qO /usr/bin/apt-get https://gitee.com/twinklesharp/apt-cyg/raw/master/apt-cyg
+		chmod +rwx /usr/bin/apt-get
+		[ ! -f /usr/bin/apt-cyg ] && ln -s /usr/bin/apt-get /usr/bin/apt-cyg
+		[ ! -f ${APP_BIN}7z.exe ] && wget --no-check-certificate -O ${APP_BIN}7z.zip https://raw.githubusercontent.com/e9965/ShUnzip/master/bin/7z.zip
+		apt-get install unzip
+		unzip ${APP_BIN}7z.zip -d ${APP_BIN} && rm -rf ${APP_BIN}7z.zip
+		apt-get install ImageMagick
+	else
+		source ${SHELL_BIN}ini.sh
+		apt-get install p7zip-full p7zip-rar wget imagemagick -y
+	fi
+	apt-get install curl base64 hexdump file rsync dos2unix -y
+}
+SET_BASIC_ENV_VAR(){
+	echo -e "${green}[INFO]${plain}正在準備環境參數......"
+	export blue='\033[36m'
+	export yellow='\033[33m'
+	export green='\033[32m'
+	export red='\033[31m'
+	export plain='\033[0m'
+	export sound='\007'
+	export APP_BIN=${SHELL_BOX_PATH}/bin/
+	export PATH=${PATH}:${APP_BIN}
+	export SHELL_BIN=${SHELL_BOX_PATH}/bin/sh/
+	export CONFIG_FILE=${SHELL_BOX_PATH}/conf/unzip.conf
+	export PASSWD_FILE=${SHELL_BOX_PATH}/conf/passwd.conf
+	export BAIDU_FILE=${SHELL_BOX_PATH}/conf/baidu.conf
+	export COOKIES_FILE=${SHELL_BOX_PATH}/conf/cookies.conf
+	export TEMP_PATH=${SHELL_BOX_PATH}/temp
+	export TEMP_DOWN_PATH=${SHELL_BOX_PATH}/temp/downloads
+	export TEMP_UNZIP_PATH=${SHELL_BOX_PATH}/temp/Unzip/
+	export TEMP_BAIDU_DOWN_PATH=/ShellBox/
+	export INI_FILE=${SHELL_BOX_PATH}/run.ini
+	export OD=0
+	INI_MKDIR ${CONFIG_FILE%\/*}
+	INI_MKDIR ${APP_BIN%\/*}
+	INI_MKDIR ${SHELL_BIN%\/*}
+	INI_MKDIR ${TEMP_PATH}
+	INI_MKDIR ${TEMP_DOWN_PATH}
+	INI_MKDIR ${TEMP_UNZIP_PATH}
+	if [[ ! -f ${INI_FILE} ]]
+	then
+		#寫入使用OS類型
+		echo -e "${blue}[INFO]${plain}使用平台參數:"
+		echo -e "${yellow}0:Unix架构${plain} | ${yellow}1:Colab等一次性設備${plain} | ${yellow}2:Windows${plain}"
+		while true
+		do
+			echo -ne "${yellow}[INPUT]${plain}請輸入使用平台參數:"
+			read -r temp_os
+			echo -ne "${yellow}[INPUT]${plain}開始部署......."
+			case ${temp_os} in
+				1|0)
+					echo "export USER_OS=${temp_os}" > ${INI_FILE}
+					if [[ ${temp_os} == 1 ]]
+					then
+						while true
+						do
+							echo -en "${yellow}[INFO]${plain}请输入你Colab的源文件夹:"
+							read temp_source
+							if [[ -d ${temp_source} ]]
+							then
+								echo "export COLAB_SOURCE=\"${temp_source}\"" >> ${INI_FILE}
+								break
+							else
+								WARNING_NUM
+							fi
+						done
+						touch ${HOME}/colab_indicator
+					fi
+					wget -O ${APP_BIN}bd https://github.com/e9965/ShUnzip/raw/master/bin/BaiduPCS-Go
+					break
+					;;
+				2)
+					echo "export USER_OS=${temp_os}" > ${INI_FILE}
+					[ ! -f ${APP_BIN}bd.exe ] && wget --no-check-certificate -O ${APP_BIN}bd.exe https://raw.githubusercontent.com/e9965/ShUnzip/master/bin/BaiduPCS-Go.exe
+					break
+					;;
+				*)
+					WARNING_NUM
+					;;
+			esac
+		done
+		echo -en "${yellow}[INFO]${plain}目标/解压/下载文件夹到Onedrive[Enter跳过] [1确认]:"
+			read temp_od
+			if [[ ${temp_od} == 1 ]]
+			then
+				echo "export OD=1" >> ${INI_FILE}
+				while true 
+				do
+					echo -en "${yellow}[INFO]${plain}请输入你Rclone配置文件<Windows请拖放文件>:"
+					read temp_rclone
+					[[ -f ${temp_rclone} ]] && echo "export RCLONE=\"${temp_rclone}\"" >> ${INI_FILE} && break || WARNING_NUM
+				done
+				echo -en "${yellow}[INFO]${plain}正在配置Rclone......"
+				if [[ ${temp_os} == 2 ]]
+				then
+					[ ! -f ${APP_BIN}rclone.exe ] && wget --no-check-certificate -O ${APP_BIN}rclone.exe https://raw.githubusercontent.com/e9965/ShUnzip/master/bin/rclone.exe
+				else
+					curl https://rclone.org/install.sh | sudo bash
+				fi
+			fi
+		#Rhel架构 [包括Centos]  #使用前请自行更改初始化的安装包
+		
+	fi
+	echo -e "${yellow}[INFO]${plain}開始設置臨時環境參數"
+	source ${INI_FILE}
+	#確保已安裝所需軟件
+	if [[ ! -f "${HOME}/sh" ]]
+	then
+		ln -s ${SHELL_BOX_PATH}/sh ${HOME}/sh
+		APT_INSTALL
+	fi
+	chmod +rwx ${APP_BIN}*
+	chmod +rwx ${SHELL_BIN}*
+	exec 4>&-
+	unset temp_os && unset temp_source
+	echo -e "${green}[INFO]${plain}完成設置臨時環境參數"
+}
+WARNING_NUM(){
+	echo -ne "${sound}"
+	echo -e "${red}[EROR]${plain}請合理配置"
+}
+TITLE(){
+	DRAWLINE
+	echo -e "${blue}|   _____ __         ________             | "
+	echo -e "${blue}|  / ___|| |__   ___| | | __ )  _____  __ | "
+	echo -e "${blue}|  \___ \| '_ \ / _ \ | |  _ \ / _ \ \/ / | "
+	echo -e "${blue}|   ___) | | | |  __/ | | |_) | (_) >  <  | "
+	echo -e "${blue}|  |____/|_| |_|\___|_|_|____/ \___/_/\_\ | "
+	DRAWLINE
+	echo -e "${plain}目前版本: ${red}ver2.0 By:GetIntoBus${plain}"
+	DRAWLINE
+}
+READ_BAIDU(){
+	if [[ ! -f "${BAIDU_FILE}" ]]
+	then
+		CLEAR_BAIDUPCS_GO
+		touch ${BAIDU_FILE} > /dev/null 2>&1
+		echo -e "${blue}[INFO]${plain}準備配置百度雲下載設置......"
+		#下載單文件線程數
+		DRAWLINE
+		echo -e "${blue}[INFO]${plain}單一任務線程數越大越快"
+		echo -e "${blue}[INFO]${plain}默認為128 - 建議 [50-500] - 如RAM不夠會造成崩潰 - 請自己衡量RAM大小 -"
+		while true
+		do
+			echo -ne "${yellow}[INFO]${plain}請輸入${green}單一任務線程數${plain}:"
+			read temp_down_thread
+			if [[ ${temp_down_thread} == "" ]]
+			then
+				temp_down_thread=128
+			fi
+			if ((${temp_down_thread} < 300))
+			then
+				if ((${temp_down_thread} > 20))
+				then
+					echo -e "${green}[INFO]${plain}成功設置為${temp_down_thread}"
+					echo "export MAXTHREAD=${temp_down_thread}" > ${BAIDU_FILE}
+					break
+				fi
+			fi
+			WARNING_NUM
+		done
+		#下載單文件緩存大小
+		DRAWLINE
+		echo -e "${blue}[INFO]${plain}單一任務緩存大小越大越快 [單位為M]"
+		echo -e "${blue}[INFO]${plain}默認為16 - 建議 [1-64] - 如RAM不夠會造成崩潰 - 請自己衡量RAM大小 -"
+		while true
+		do
+			echo -en "${yellow}[INFO]${plain}請輸入${green}單一任務緩存大小${plain}:"
+			read temp_down_cache
+			if [[ ${temp_down_cache} == "" ]]
+			then
+				temp_down_cache=16
+			fi
+			if ((${temp_down_cache} < 64))
+			then
+				if ((${temp_down_cache} > 0))
+				then
+					echo -e "${green}[INFO]${plain}成功設置為${temp_down_cache}M"
+					echo "export MAXCACHE=${temp_down_cache}M" >> ${BAIDU_FILE}
+					break
+				fi
+			fi
+			WARNING_NUM
+		done
+		DRAWLINE
+		#讀取任務並行數
+		echo -e "${blue}[INFO]${plain}下載任務並行數"
+		echo -e "${blue}[INFO]${plain}默認為2 - 建議 [1-9] - 如RAM不夠會造成崩潰 - 請自己衡量RAM大小 -"
+		while true
+		do
+			echo -en "${yellow}[INFO]${plain}請輸入${green}單一任務緩存大小${plain}:"
+			read temp_down_parallel
+			if [[ ${temp_down_parallel} == "" ]]
+			then
+				temp_down_parallel=2
+			fi
+			case ${temp_down_parallel} in
+			[1-9])
+					echo -e "${green}[INFO]${plain}成功設置為${temp_down_parallel}"
+					echo "export MAXPARALLEL=${temp_down_parallel}" >> ${BAIDU_FILE}
+					break
+					;;
+				*)
+					WARNING_NUM
+					;;
+			esac
+		done
+		#寫入初始化設置Flag
+		#写入历史下载目录
+		echo "export HIST_DOWN_PATH=${TEMP_DOWN_PATH}" >> ${BAIDU_FILE}
+		#完成設定BaiduPCS-Go
+		unset temp_cookie && unset temp_down_parallel && unset temp_down_cache && unset temp_down_thread
+		echo -e "${green}[INFO]${plain}設定完成"
+		DRAWLINE
+	fi
+	if [[ ! -f ${COOKIES_FILE} ]]
+	then
+	#百度雲登錄Cookie
+		echo -e "${blue}[INFO]${plain}提取Cookie教程請參考倉庫"
+		echo -en "${blue}[INFO]${plain}請輸入${green}百度雲Cookie${plain}:"
+		read temp_cookie
+		echo "export COOKIES=\"${temp_cookie}\"" > ${COOKIES_FILE}
+		echo "export INITIALIZED=0" >> ${COOKIES_FILE}
+		DRAWLINE
+	fi
+}
+READ_CONFIG(){
+	if [[ ! -f "${CONFIG_FILE}" ]]
+	then
+		#確認用戶同意
+		echo -e "${blue}[INFO]${plain}準備配置解壓設定......"
+		echo -e "${red}[INFO]${plain}為確保本軟件的精簡度&速度, 解壓後會自動刪除壓縮包."
+		echo -en "${red}[INPUT]${plain}- 接受可按 <ENTER> 繼續 - 無法接受可按 Cltr+C 退出本腳本 - "
+		read
+		touch ${CONFIG_FILE} > /dev/null 2>&1
+		DRAWLINE
+		#獲取用戶壓縮包目錄
+		echo -e "${blue}[INFO]${plain}填寫壓縮包目錄實現本地自動解壓 - 支持拖動 - 可留空"
+		echo -en "${yellow}[INPUT]${plain}請輸入你的${green}壓縮包的目錄${plain}:"
+		read -r temp_input_dir
+		if [[ -d ${temp_input_dir} ]]
+		then
+			echo -e "${green}[INFO]${plain}成功設置為$(echo ${temp_input_dir}|tr '\\' '/')"
+			echo "export INPUT_DIR=\"${temp_input_dir}\"" > ${CONFIG_FILE}
+		else
+			echo -e "${red}[INFO]${plain}以後每次使用本地解壓功能均需重新填寫目錄"
+			echo "export INPUT_DIR=FLASE" > ${CONFIG_FILE}
+		fi
+		DRAWLINE
+		#解壓目錄輸入
+		echo -e "${blue}[INFO]${plain}填寫|${green}解壓縮目錄${plain}|${green}下载目录${plain}|實現本地自動解壓 - 支持拖動 - 不可留空"
+		while true
+		do
+			echo -en "${yellow}[INPUT]${plain}請輸入你${green}解壓縮的目錄${plain}:"
+			read -r temp_output_dir
+			if [[ -d ${temp_output_dir} ]]
+			then
+				echo -e "${green}[INFO]${plain}成功設置為$(echo ${temp_output_dir}|tr '\\' '/')"
+				echo "export OUT_DIR=\"${temp_output_dir}\"" >> ${CONFIG_FILE}
+				break
+			fi
+			echo -ne "${sound}"
+			echo -e "${red}[INFO]${plain}請輸入正確的目錄"
+		done
+		DRAWLINE
+		#並行數目輸入
+		echo -e "${blue}[INFO]${plain}解壓時的並行數目建議[1~5] - 默認為1 - 請自己衡量CPU性能 -"
+		while true
+		do
+			echo -en "${yellow}[INPUT]${plain}填寫${green}解壓縮的並行數目${plain}:"
+			read temp_unzip_thread
+			if [[ ${temp_unzip_thread} == "" ]]
+			then
+				temp_unzip_thread=1
+			fi
+			case ${temp_unzip_thread} in
+				[1-9])
+						echo -e "${green}[INFO]${plain}成功輸入解壓並行數為${temp_unzip_thread}"
+						echo "export UNZIP_THREAD=${temp_unzip_thread}" >> ${CONFIG_FILE}
+						break
+						;;
+					*)
+						WARNING_NUM
+					  ;;
+			esac
+		done
+		DRAWLINE
+		unset temp_input_dir && unset temp_output_dir && unset temp_unzip_thread
+		echo -e "${green}[INFO]${plain}成功配置解壓設定"
+		DRAWLINE
+	fi
+}
+WAIT_PASS(){
+	echo -e "${yellow}[INFO]${plain}等待密码文档更新......"
+	i=30
+	while ((${i}>0))
+	do
+		echo -en "剩余[${i}]秒......"
+		sleep 1s
+		echo -en "\r						\r"
+		let "i--"
+	done
+	echo -e "${green}[INFO]${plain}密码文档成功"
+}
+READ_PASSWD(){
+	if [[ ! -f "${PASSWD_FILE}" ]]
+	then
+		echo -e "${blue}[INFO]${plain}準備配置解壓密碼設定......"
+		touch ${PASSWD_FILE} > /dev/null 2>&1
+		echo "#删除此行, 并在此处填上你的密码本, 确保一行一密码" > ${PASSWD_FILE}
+		if [[ ${USER_OS} == 1 ]]
+		then
+			INI_MKDIR ${COLAB_SOURCE}/conf
+			mv -f ${PASSWD_FILE} ${COLAB_SOURCE}/conf/passwd.conf
+			echo -e "${blue}[INFO]${plain}請將密碼文件寫入 ${green}[${COLAB_SOURCE}/conf/passwd.conf]${plain} - 一行一個密碼 - "
+			echo -e "${blue}[INFO]${plain}可使用GoogleDrive线上文本编辑器"
+			echo -en "${yellow}[INFO]${plain}填寫完成後按任何鍵繼續......"
+			read
+			WAIT_PASS
+			mv -f ${COLAB_SOURCE}/conf/passwd.conf ${PASSWD_FILE}
+		else
+			CONC_PATH ${PASSWD_FILE}
+			echo -e "${blue}[INFO]${plain}請將密碼文件寫入 ${green}[${a}]${plain} - 一行一個密碼 - "
+			echo -en "${yellow}[INFO]${plain}填寫完成後按任何鍵繼續......"
+			read
+		fi
+		dos2unix ${PASSWD_FILE}
+		echo -e "${green}[INFO]${plain}成功配置壓縮密碼設定"
+		DRAWLINE
+	else
+		#Ask For the NEW Password
+		echo -e "${yellow}[INFO]${plain}可輸入新增密碼 - 新增的密碼會增至第一個嘗試密碼 - 直接 <Enter> 完成輸入"
+		while true
+		do
+			echo -en "${yellow}[INPUT]${plain}請輸入${green}新的解壓密碼${plain}:"
+			read temp_passwd
+			if [[ ${temp_passwd} == "" ]]
+			then
+				break
+			else
+				mv ${PASSWD_FILE} ${PASSWD_FILE}.bak
+				touch ${PASSWD_FILE} && echo ${temp_passwd} >> ${PASSWD_FILE}
+				cat ${PASSWD_FILE}.bak >> ${PASSWD_FILE}
+				rm -f ${PASSWD_FILE}.bak
+				echo -e "${green}[INFO]${plain}已新增密碼 [ ${temp_passwd} ]"
+			fi
+		done
+	fi
+	echo -e "${green}[INFO]${plain}已導入密碼設定"
+}
+CLEAR_BAIDUPCS_GO(){
+	i=$(bd env|tail -1)
+	i=${i#*\"} && i=${i%\"*}
+	rm -rf ${i}
+}
+WARNING_DEL(){
+		echo -e "${green}重置設定完成${plain}"
+		echo -e "${yellow}請重啟本腳本${plain}"
+		sleep 2s
+}
+SET_ENV_VAR(){
+	source ${CONFIG_FILE}
+	source ${BAIDU_FILE}
+	source ${COOKIES_FILE}
+	export PASSWD=($(cat ${PASSWD_FILE}))
+}
+BACK_UP_COLAB(){
+	cp -rf ${SHELL_BOX_PATH} ${COLAB_SOURCE%\/*}
+	if [[ $? == 0 ]]
+	then
+		echo -e "${green}[INFO]${plain}保存成功"
+	else
+		echo -e "${red}[INFO]${plain}保存失败, 请重试"
+	fi
+	return 0
+}
+MENU(){
+	DRAWLINE
+	echo -e "${blue}1.自動下載百度雲文件 & 自動解壓${plain}"
+	echo -e "${blue}2.自動下載百度雲文件${plain}"
+	echo -e "${blue}3.本地自動解壓${plain}"
+	echo -e "${blue}4.nHentai.net自動下載 & 轉換為PDF${plain}"
+	echo -e "${red}A.重新配置 - 自動解壓配置 -"
+	echo -e "${red}B.重新配置 - 百度雲下載設置 -"
+	echo -e "${red}C.重新配置 - 百度雲Cookies -"
+	if [[ ${USER_OS} == 1 ]]
+	then
+		echo -e "${yellow}G.保存GoogleDrive设定"
+	fi
+	echo -e "${blue}E.退出本腳本${plain}"
+	DRAWLINE
+}
+USEROPT(){
+	echo -en "${yellow}[INPUT]${plain}請輸入你需要的功能:"
+	read i
+	case ${i} in
+		1)
+			source ${SHELL_BIN}baidu_initialized.sh
+		  	source ${SHELL_BIN}baidu_down.sh ${TEMP_DOWN_PATH}
+		  	source ${SHELL_BIN}auto_unzip.sh 1
+			return 0
+			;;
+		2)
+			source ${SHELL_BIN}baidu_initialized.sh
+			while true
+			do
+				[[ ${OD} == 1 ]] && break
+				echo -ne "${yellow}[INPUT]${plain}請輸入下載目錄 <默認為:${blue}${HIST_DOWN_PATH}${plain}>:"
+		  		read -r DOWN_PATH
+				if [[ ${DOWN_PATH} == "" ]]
+				then
+					DOWN_PATH=${HIST_DOWN_PATH}
+				fi
+				if [[ -d ${DOWN_PATH} ]]
+				then
+					sed -i "s|HIST_DOWN_PATH=\"${DOWN_PATH}\"|HIST_DOWN_PATH=\"${DOWN_PATH}\"|g" ${BAIDU_FILE}
+					echo -e "${green}[INFO]${plain}成功設置為$(echo ${DOWN_PATH}|tr '\\' '/')"
+					break
+				else
+					echo -ne "${sound}"
+					echo -e "${red}[INFO]${plain}請輸入正確的目錄"
+				fi
+			done
+			DRAWLINE
+			source ${SHELL_BIN}baidu_down.sh ${DOWN_PATH}
+			return 0
+			;;
+		3)	
+			source ${SHELL_BIN}auto_unzip.sh 0
+		  	return 0
+			;;
+		4)
+			source ${SHELL_BIN}nhentai_down.sh
+			return 0
+			;;
+		a|A)
+			echo -en "${red}[WARNING]${plain}重置後需要重新配置 - <Ctrl+C> 退出 - <Enter> 確認"
+			read
+			rm -rf ${CONFIG_FILE}
+			[[ ${USER_OS} == 1 ]] && rm -rf ${COLAB_SOURCE}/conf/unzip.conf
+			WARNING_DEL
+			return 1
+			;;
+		b|B)
+			echo -en "${red}[WARNING]${plain}重置後需要重新配置 - <Ctrl+C> 退出 - <Enter> 確認"
+			read
+			CLEAR_BAIDUPCS_GO
+			rm -rf ${BAIDU_FILE}
+			[[ ${USER_OS} == 1 ]] && rm -rf ${COLAB_SOURCE}/conf/baidu.conf
+			WARNING_DEL
+			return 1
+			;;
+		c|C)
+			echo -en "${red}[WARNING]${plain}重置後需要重新登录 - <Ctrl+C> 退出 - <Enter> 確認"
+			read
+			CLEAR_BAIDUPCS_GO
+			rm -rf ${COOKIES_FILE}
+			[[ ${USER_OS} == 1 ]] && rm -rf ${COLAB_SOURCE}/conf/cookies.conf
+			WARNING_DEL
+			return 1
+			;;
+		e|E)
+			if [[ ${USER_OS} == 1 ]]
+			then
+				BACK_UP_COLAB
+			fi
+			echo -e "${red}[EXIT]${plain}拜拜~"
+			return 1
+			;;
+		g|G)
+			if [[ ${USER_OS} == 1 ]]
+			then
+				BACK_UP_COLAB
+			else
+				echo -ne "${sound}"
+				echo -e "${red}[INFO]${plain}請輸入正確的選項"
+				return 0
+			fi
+			;;
+		*)
+			echo -ne "${sound}"
+		  	echo -e "${red}[INFO]${plain}請輸入正確的選項"
+		  	return 0
+			;;
+	esac
+	DRAWLINE
+}
+#-------------------------------------------------------------------
+#<Main_Program_Body>
+	#<程序運行-环境参数>
+	SHELL_BOX_PATH=$(readlink -f ${0})
+	export SHELL_BOX_PATH=${SHELL_BOX_PATH%\/*}
+	#<程序運行-Dummy_Variable>
+	Menu_Flag=0
+	i=0
+	SET_BASIC_ENV_VAR
+	clear
+#-------------------------------------------------------------------
+TITLE
+INITIALIZATION
+while (( ${Menu_Flag} == 0 ))
+do
+	MENU
+	USEROPT
+	Menu_Flag=$?
+done
+unset i && unset Menu_Flag
+exit 0
+IFS=$OLD_IFS
