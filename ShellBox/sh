@@ -135,9 +135,16 @@ SET_BASIC_ENV_VAR(){
 				echo "export OD=1" >> ${INI_FILE}
 				while true 
 				do
-					echo -en "${yellow}[INFO]${plain}请输入你Rclone配置文件<Windows请拖放文件>:"
-					read temp_rclone
-					[[ -f ${temp_rclone} ]] && echo "export RCLONE=\"${temp_rclone}\"" >> ${INI_FILE} && break || WARNING_NUM
+					if [[ ${USER_OS} == 1 ]]
+					then
+						echo -en "${yellow}[INFO]${plain}请输入你Rclone配置文件:"
+						read temp_rclone
+						[[ -f ${temp_rclone} ]] && echo "export RCLONE=\"${temp_rclone}\"" >> ${INI_FILE} && break || WARNING_NUM
+					else
+						[[ ${USER_OS} == 2 ]] && temp_rclone=".exe"
+						${APP_BIN}rclone${temp_rclone} config create OneDrive onedrive
+						temp_rclone=$(${APP_BIN}rclone${temp_rclone} config file)
+						echo "export RCLONE=\"${temp_rclone#*:}\"" >> ${INI_FILE} && break
 				done
 				echo -en "${yellow}[INFO]${plain}正在配置Rclone......"
 				if [[ ${temp_os} == 2 ]]
@@ -370,7 +377,7 @@ READ_PASSWD(){
 			mv -f ${COLAB_SOURCE}/conf/passwd.conf ${PASSWD_FILE}
 		else
 			CONC_PATH ${PASSWD_FILE}
-			echo -e "${blue}[INFO]${plain}請將密碼文件寫入 ${green}[${a}]${plain} - 一行一個密碼 - "
+			echo -e "${blue}[INFO]${plain}請將密碼文件寫入 ${green}${a}${plain} - 一行一個密碼 - "
 			echo -en "${yellow}[INFO]${plain}填寫完成後按任何鍵繼續......"
 			read
 		fi
@@ -443,6 +450,7 @@ MENU(){
 USEROPT(){
 	echo -en "${yellow}[INPUT]${plain}請輸入你需要的功能:"
 	read i
+	export CHOICE=${i}
 	case ${i} in
 		1)
 			source ${SHELL_BIN}baidu_initialized.sh
