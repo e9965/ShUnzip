@@ -61,15 +61,14 @@ TRANS(){
     fi
 }
 BDRAPID(){
+	IFS=" "
 	if [[ ${1} =~ "bdpan://" ]]
 	then
-		IFS="|"
-		linkarr=($(echo ${1:8}| base64 -d))
+		linkarr=($(echo ${1:8}| base64 -d|tr '|' ' '))
 		linkarr[0]=$(echo ${linkarr[3]}|hexdump -v -e '"\\" /1 "%02x"'|tr '\\' '%')
 		curl -s --cookie "${KEYCOOKIES}" -d "path=/ShellBox/${linkarr[0]}&content-length=${linkarr[1]}&content-md5=${linkarr[2]}&slice-md5=${linkarr[3]}" -X POST "https://pan.baidu.com/api/rapidupload?app_id=250528&bdstoken=${BDSTOKEN}&channel=chunlei&clienttype=0&rtype=1&web=1" > ${TEMP_PATH}/res.json
 	else
-		IFS="#"
-		linkarr=($(echo ${1}))
+		linkarr=($(echo ${1} | tr '#' ' '))
 		linkarr[3]=$(echo ${linkarr[3]}|hexdump -v -e '"\\" /1 "%02x"'|tr '\\' '%')
 		curl -s --cookie "${KEYCOOKIES}" -d "path=/ShellBox/${linkarr[3]}&content-length=${linkarr[2]}&content-md5=${linkarr[0]}&slice-md5=${linkarr[1]}" -X POST "https://pan.baidu.com/api/rapidupload?app_id=250528&bdstoken=${BDSTOKEN}&channel=chunlei&clienttype=0&rtype=1&web=1" > ${TEMP_PATH}/res.json
 	fi
