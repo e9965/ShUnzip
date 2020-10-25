@@ -145,6 +145,7 @@ SET_BASIC_ENV_VAR(){
 						${APP_BIN}rclone${temp_rclone} config create OneDrive onedrive
 						temp_rclone=$(${APP_BIN}rclone${temp_rclone} config file)
 						echo "export RCLONE=\"${temp_rclone#*:}\"" >> ${INI_FILE} && break
+					fi
 				done
 				echo -en "${yellow}[INFO]${plain}正在配置Rclone......"
 				if [[ ${temp_os} == 2 ]]
