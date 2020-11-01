@@ -147,7 +147,7 @@ TRY_PASS=""
 UNZIP_INITIALIZED $1
 SET_SUCC_FILE_LIST
 CHECK_TEMP_DIR
-[ ${AUTO} -eq 1 ] && METHOD
+[ -z ${ex} ] && METHOD
 clear
 #-------------------------------------------------------------------
 while true
@@ -158,7 +158,7 @@ do
 	ENSURE_PATH
 	echo -e "${yellow}[INFO]${plain}正在尋找壓縮文件中......"
 	CHECKFILES_LIST=$(find ${INPUT_DIR} -type f -name "*" )
-	UNZIP_MULTI 50
+	UNZIP_MULTI 256
 	wait
 	SET_TEMP_FILE_LIST
 	SET_FAIL_FILE_LIST
@@ -179,7 +179,7 @@ do
 	if [[ ${NUM_RUN} > 1 ]]
 	then
 		CHECKFILES_LIST=$(find ${TEMP_UNZIP_PATH} -type f -name "*" )
-		UNZIP_MULTI 50
+		UNZIP_MULTI 256
 		wait
 		for i in ${CHECKFILES_LIST}
 		do

@@ -1,4 +1,7 @@
 #!/bin/bash
+IFS=" "
+FLAG1=${1}
+FLAG2=${2}
 OLD_IFS=$IFS
 IFS=$(echo -en "\n\b")
 #-------------------------------------------------------------------
@@ -390,22 +393,25 @@ READ_PASSWD(){
 		DRAWLINE
 	else
 		#Ask For the NEW Password
-		echo -e "${yellow}[INFO]${plain}可輸入新增密碼 - 新增的密碼會增至第一個嘗試密碼 - 直接 <Enter> 完成輸入"
-		while true
-		do
-			echo -en "${yellow}[INPUT]${plain}請輸入${green}新的解壓密碼${plain}:"
-			read temp_passwd
-			if [[ ${temp_passwd} == "" ]]
-			then
-				break
-			else
-				mv ${PASSWD_FILE} ${PASSWD_FILE}.bak
-				touch ${PASSWD_FILE} && echo ${temp_passwd} >> ${PASSWD_FILE}
-				cat ${PASSWD_FILE}.bak >> ${PASSWD_FILE}
-				rm -f ${PASSWD_FILE}.bak
-				echo -e "${green}[INFO]${plain}已新增密碼 [ ${temp_passwd} ]"
-			fi
-		done
+		if [[ ! ${AUTO} == 1 ]]
+		then
+			echo -e "${yellow}[INFO]${plain}可輸入新增密碼 - 新增的密碼會增至第一個嘗試密碼 - 直接 <Enter> 完成輸入"
+			while true
+			do
+				echo -en "${yellow}[INPUT]${plain}請輸入${green}新的解壓密碼${plain}:"
+				read temp_passwd
+				if [[ ${temp_passwd} == "" ]]
+				then
+					break
+				else
+					mv ${PASSWD_FILE} ${PASSWD_FILE}.bak
+					touch ${PASSWD_FILE} && echo ${temp_passwd} >> ${PASSWD_FILE}
+					cat ${PASSWD_FILE}.bak >> ${PASSWD_FILE}
+					rm -f ${PASSWD_FILE}.bak
+					echo -e "${green}[INFO]${plain}已新增密碼 [ ${temp_passwd} ]"
+				fi
+			done
+		fi
 	fi
 	echo -e "${green}[INFO]${plain}已導入密碼設定"
 }
@@ -458,7 +464,8 @@ USEROPT(){
 		read i
 		export CHOICE=${i}
 	fi
-	case ${i} in
+	clear
+	case ${CHOICE} in
 		1)
 			source ${SHELL_BIN}baidu_initialized.sh
 		  	source ${SHELL_BIN}baidu_down.sh ${TEMP_DOWN_PATH}
@@ -562,19 +569,19 @@ USEROPT(){
 	clear
 #-------------------------------------------------------------------
 	#<参数分析>
-	if [ -z ${1} ]
+	if [ -n ${FLAG1} ]
 	then
-		case ${1} in
+		case ${FLAG1} in
 			1|2|3|4)
-				export CHOICE=${1}
+				export CHOICE=${FLAG1}
 				export AUTO=1
-				if [ ${2} =~ "f" ] ; then
+				if [[ ${FLAG2} =~ "f" ]] ; then
 					export ex=e
 				else
 					export ex=x
 				fi
 				
-				if [ ! ${2} =~ "o" ] ; then
+				if [[ ! ${2} =~ "o" ]] ; then
 					export OD=0
 				fi
 				;;
@@ -594,7 +601,7 @@ do
 	MENU
 	USEROPT
 	Menu_Flag=$?
-	[ ${AUTO} -eq 1 ] && Menu_Flag=2
+	[[ ${AUTO} == 1 ]] && Menu_Flag=2
 done
 unset i && unset Menu_Flag
 exit 0

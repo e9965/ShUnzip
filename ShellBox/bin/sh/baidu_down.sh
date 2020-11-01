@@ -37,7 +37,7 @@ BAIDU_DIR_INI(){
 TRANS(){
 	link=0
 	key=0
-	echo -e -n "${green}[ 留空停止转存环节 ]请输入分享链接:${plain}"
+	echo -e -n "${green}[ 留空停止转存 ]请输入分享链接:${plain}"
     read -r link
     if [[ -z ${link} ]]
     then
@@ -48,7 +48,7 @@ TRANS(){
         if [[ ${link} =~ "https" ]]
         then
             link=${link#https\:\/\/*}
-            echo -e -n "${yellow}[ 留空停止转存环节 ]請輸入密碼:${plain}"
+            echo -e -n "${yellow}[ 留空停止转存 ]請輸入密碼:${plain}"
             read -r key
             echo -e "${red}[ INFO ]${plain}轉存中"
             bd transfer ${link} ${key}
