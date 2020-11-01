@@ -33,11 +33,14 @@ INI_MKDIR(){
 	fi
 }
 ONEDRIVE(){
-	if [[ ${OD} == 1 ]]
+	if [[ ${AUTO} == 1 ]]
 	then
-		echo -en "${yellow}[INPUT]${plain}输入【1】确认下载到Onedrive，否则跳过:"
-		read i
-		[ -z ${i} ] && OD=0
+		if [[ ${OD} == 1 ]]
+		then
+			echo -en "${yellow}[INPUT]${plain}输入【1】确认下载到Onedrive，否则跳过:"
+			read i
+			[ -z ${i} ] && OD=0
+		fi
 	fi
 }
 APT_INSTALL(){
@@ -449,9 +452,12 @@ MENU(){
 	DRAWLINE
 }
 USEROPT(){
-	echo -en "${yellow}[INPUT]${plain}請輸入你需要的功能:"
-	read i
-	export CHOICE=${i}
+	if [ -z ${CHOICE} ]
+	then
+		echo -en "${yellow}[INPUT]${plain}請輸入你需要的功能:"
+		read i
+		export CHOICE=${i}
+	fi
 	case ${i} in
 		1)
 			source ${SHELL_BIN}baidu_initialized.sh
@@ -555,13 +561,40 @@ USEROPT(){
 	SET_BASIC_ENV_VAR
 	clear
 #-------------------------------------------------------------------
-TITLE
-INITIALIZATION
+	#<参数分析>
+	if [ -z ${1} ]
+	then
+		case ${1} in
+			1|2|3|4)
+				export CHOICE=${1}
+				export AUTO=1
+				if [ ${2} =~ "f" ] ; then
+					export ex=e
+				else
+					export ex=x
+				fi
+				
+				if [ ! ${2} =~ "o" ] ; then
+					export OD=0
+				fi
+				;;
+			*)
+				export AUTO=0
+				echo "Entering Interaction Mode......"
+				;;
+		esac
+	fi
+#-------------------------------------------------------------------	
+	#<程序初始化>
+	TITLE
+	INITIALIZATION
+#-------------------------------------------------------------------
 while (( ${Menu_Flag} == 0 ))
 do
 	MENU
 	USEROPT
 	Menu_Flag=$?
+	[ ${AUTO} -eq 1 ] && Menu_Flag=2
 done
 unset i && unset Menu_Flag
 exit 0

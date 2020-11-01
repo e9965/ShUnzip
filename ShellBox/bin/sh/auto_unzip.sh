@@ -77,8 +77,8 @@ echo -e "自動解壓插件 Ver.0.0.1 By:GetIntoBus"
 DRAWLINE
 }
 ENSURE_PATH(){
-	mkdir ${TEMP_UNZIP_PATH} > /dev/null 2>&1
-	mkdir ${OUT_DIR} > /dev/null 2>&1
+	mkdir -p ${TEMP_UNZIP_PATH} > /dev/null 2>&1
+	mkdir -p ${OUT_DIR} > /dev/null 2>&1
 }
 UNZIP_INITIALIZED(){
 	UNZIP_TITLE
@@ -119,11 +119,11 @@ COLAB_TEMP_MV(){
 CHECK_TEMP_DIR(){
 	if [ ! -d  ${TEMP_DOWN_PATH} ]
 	then
-		mkdir ${TEMP_DOWN_PATH}
+		mkdir -p ${TEMP_DOWN_PATH}
 	fi
 	if [ ! -d ${TEMP_UNZIP_PATH} ]
 	then
-		mkdir ${TEMP_UNZIP_PATH}
+		mkdir -p ${TEMP_UNZIP_PATH}
 	fi
 }
 METHOD(){
@@ -147,7 +147,7 @@ TRY_PASS=""
 UNZIP_INITIALIZED $1
 SET_SUCC_FILE_LIST
 CHECK_TEMP_DIR
-METHOD
+[ ${AUTO} -eq 1 ] && METHOD
 clear
 #-------------------------------------------------------------------
 while true
