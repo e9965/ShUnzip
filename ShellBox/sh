@@ -173,8 +173,7 @@ SET_BASIC_ENV_VAR(){
 		[[ ${USEROS} == 1 ]] && rclone --help || curl https://rclone.org/install.sh | sudo bash
 		APT_INSTALL
 	fi
-	chmod +rwx ${APP_BIN}*
-	chmod +rwx ${SHELL_BIN}*
+	sudo chmod -R a+rwx ${SHELL_BOX_PATH}
 	exec 4>&-
 	unset temp_os && unset temp_source
 	echo -e "${green}[INFO]${plain}完成設置臨時環境參數"
@@ -371,7 +370,7 @@ READ_PASSWD(){
 	then
 		echo -e "${blue}[INFO]${plain}準備配置解壓密碼設定......"
 		touch ${PASSWD_FILE} > /dev/null 2>&1
-		chmod a+rwx ${PASSWD_FILE}
+		sudo chmod a+rwx ${PASSWD_FILE}
 		echo "#删除此行, 并在此处填上你的密码本, 确保一行一密码" > ${PASSWD_FILE}
 		if [[ ${USER_OS} == 1 ]]
 		then
