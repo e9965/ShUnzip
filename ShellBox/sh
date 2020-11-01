@@ -96,7 +96,7 @@ SET_BASIC_ENV_VAR(){
 	then
 		#寫入使用OS類型
 		echo -e "${blue}[INFO]${plain}使用平台參數:"
-		echo -e "${yellow}0:Unix架构${plain} | ${yellow}1:Colab等一次性設備${plain} | ${yellow}2:Windows${plain}"
+		echo -e "${yellow}0:Unix架构${plain} | ${yellow}1:Colab/DeepNote${plain} | ${yellow}2:Windows${plain}"
 		while true
 		do
 			echo -ne "${yellow}[INPUT]${plain}請輸入使用平台參數:"
@@ -134,11 +134,18 @@ SET_BASIC_ENV_VAR(){
 					;;
 			esac
 		done
-		echo -en "${yellow}[INFO]${plain}目标/解压/下载文件夹到Onedrive[Enter跳过] [1确认]:"
+		echo -en "${yellow}[INFO]${plain}开启Onedrive转存功能[Enter跳过] [1确认]:"
 			read temp_od
 			if [[ ${temp_od} == 1 ]]
 			then
 				echo "export OD=1" >> ${INI_FILE}
+				echo -en "${yellow}[INFO]${plain}正在配置Rclone......"
+				if [[ ${temp_os} == 2 ]]
+				then
+					[ ! -f ${APP_BIN}rclone.exe ] && wget --no-check-certificate -O ${APP_BIN}rclone.exe https://raw.githubusercontent.com/e9965/ShUnzip/master/bin/rclone.exe
+				else
+					curl https://rclone.org/install.sh | sudo bash
+				fi
 				while true 
 				do
 					if [[ ${USER_OS} == 1 ]]
@@ -153,13 +160,6 @@ SET_BASIC_ENV_VAR(){
 						echo "export RCLONE=\"${temp_rclone#*:}\"" >> ${INI_FILE} && break
 					fi
 				done
-				echo -en "${yellow}[INFO]${plain}正在配置Rclone......"
-				if [[ ${temp_os} == 2 ]]
-				then
-					[ ! -f ${APP_BIN}rclone.exe ] && wget --no-check-certificate -O ${APP_BIN}rclone.exe https://raw.githubusercontent.com/e9965/ShUnzip/master/bin/rclone.exe
-				else
-					curl https://rclone.org/install.sh | sudo bash
-				fi
 			fi
 		#Rhel架构 [包括Centos]  #使用前请自行更改初始化的安装包
 		
