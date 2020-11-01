@@ -148,13 +148,13 @@ SET_BASIC_ENV_VAR(){
 				fi
 				while true 
 				do
-					if [[ ${USER_OS} == 1 ]]
+					if [[ ! ${USER_OS} == 2 ]]
 					then
 						echo -en "${yellow}[INFO]${plain}请输入你Rclone配置文件:"
 						read temp_rclone
 						[[ -f ${temp_rclone} ]] && echo "export RCLONE=\"${temp_rclone}\"" >> ${INI_FILE} && break || WARNING_NUM
 					else
-						[[ ${USER_OS} == 2 ]] && temp_rclone=".exe"
+						temp_rclone=".exe"
 						${APP_BIN}rclone${temp_rclone} config create OneDrive onedrive
 						temp_rclone=$(${APP_BIN}rclone${temp_rclone} config file)
 						echo "export RCLONE=\"${temp_rclone#*:}\"" >> ${INI_FILE} && break
