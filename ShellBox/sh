@@ -368,21 +368,19 @@ WAIT_PASS(){
 READ_PASSWD(){
 	if [[ ! -f "${PASSWD_FILE}" ]]
 	then
-		echo -e "${blue}[INFO]${plain}準備配置解壓密碼設定......"
-		touch ${PASSWD_FILE} > /dev/null 2>&1
-		sudo chmod a+rwx ${PASSWD_FILE}
-		echo "#删除此行, 并在此处填上你的密码本, 确保一行一密码" > ${PASSWD_FILE}
+		echo -e "${blue}[INFO]${plain}準備配置解壓密碼設定......"		
 		if [[ ${USER_OS} == 1 ]]
 		then
 			INI_MKDIR ${COLAB_SOURCE}/conf
 			mv -f ${PASSWD_FILE} ${COLAB_SOURCE}/conf/passwd.conf
-			echo -e "${blue}[INFO]${plain}請將密碼文件寫入 ${green}[${COLAB_SOURCE}/conf/passwd.conf]${plain} - 一行一個密碼 - "
+			echo -e "${blue}[INFO]${plain}請將密碼文件上传到 ${green}[${COLAB_SOURCE}/conf/passwd.conf]${plain} - 一行一個密碼 - "
 			echo -e "${blue}[INFO]${plain}可使用GoogleDrive线上文本编辑器"
 			echo -en "${yellow}[INFO]${plain}填寫完成後按任何鍵繼續......"
 			read
 			WAIT_PASS
 			mv -f ${COLAB_SOURCE}/conf/passwd.conf ${PASSWD_FILE}
 		else
+			touch ${PASSWD_FILE} > /dev/null 2>&1 && echo "#删除此行, 并在此处填上你的密码本, 确保一行一密码" > ${PASSWD_FILE}
 			CONC_PATH ${PASSWD_FILE}
 			echo -e "${blue}[INFO]${plain}請將密碼文件寫入 ${green}${a}${plain} - 一行一個密碼 - "
 			echo -en "${yellow}[INFO]${plain}填寫完成後按任何鍵繼續......"
