@@ -167,7 +167,6 @@ DISPLAY_MANGA_LIST(){
     DRAWLINE
 }
 CONC_MANGA(){
-    unset i
     echo -e "${blue}[INFO]${plain}轉換漫畫為PDF......"
     if [[ ${OD} == 0 ]]
     then

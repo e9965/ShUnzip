@@ -173,7 +173,7 @@ SET_BASIC_ENV_VAR(){
 		[[ ${USEROS} == 1 ]] && rclone --help || curl https://rclone.org/install.sh | sudo bash
 		APT_INSTALL
 	fi
-	sudo chmod -R a+rwx ${SHELL_BOX_PATH}
+	chmod -R a+rwx ${SHELL_BOX_PATH}
 	exec 4>&-
 	unset temp_os && unset temp_source
 	echo -e "${green}[INFO]${plain}完成設置臨時環境參數"
@@ -592,7 +592,7 @@ do
 	USEROPT
 	Menu_Flag=$?
 	[[ ${AUTO} == 1 ]] && Menu_Flag=2
-	unset ${CHOICE}
+	unset CHOICE
 done
 unset i && unset Menu_Flag
 exit 0
