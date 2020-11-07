@@ -82,7 +82,7 @@ SET_BASIC_ENV_VAR(){
 	export COOKIES_FILE=${SHELL_BOX_PATH}/conf/cookies.conf
 	export TEMP_PATH=${SHELL_BOX_PATH}/temp
 	export TEMP_DOWN_PATH=${SHELL_BOX_PATH}/temp/downloads
-	export TEMP_UNZIP_PATH=${SHELL_BOX_PATH}/temp/Unzip/
+	export TEMP_UNZIP_PATH=${SHELL_BOX_PATH}/temp/unzip/
 	export TEMP_BAIDU_DOWN_PATH=/ShellBox/
 	export INI_FILE=${SHELL_BOX_PATH}/run.ini
 	export OD=0
@@ -491,7 +491,7 @@ USEROPT(){
 		4)
 			echo -ne "${yellow}[INPUT]${plain}可輸入ExHentai Cookie:"
 		  	read -r temp_hentai_cookie
-			[ ! -z ${temp_hentai_cookie} ] && export EHENTAI_COOKIE="${temp_hentai_cookie}"
+			[ ! -z ${temp_hentai_cookie} ] && temp_hentai_cookie="Cookie: ${temp_hentai_cookie}" && export EHENTAI_COOKIE="${temp_hentai_cookie}"
 			source ${SHELL_BIN}hentai.sh
 			return 0
 			;;
@@ -571,8 +571,14 @@ USEROPT(){
 					export ex=x
 				fi
 				
-				if [[ ! ${2} =~ "o" ]] ; then
+				if [[ ! ${FLAG2} =~ "o" ]] ; then
 					export OD=0
+				fi
+
+				if [[ ! ${FLAG2} =~ "p" ]] ; then
+					export CONCPDF=1
+				else
+					export CONCPDF=0
 				fi
 				;;
 			*)

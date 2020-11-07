@@ -3,7 +3,9 @@ OLD_IFS=$IFS
 IFS=$(echo -en "\n\b")
 #------------------------------------------------------------------
 WGET_FILE=${TEMP_UNZIP_PATH}mangalist
-MANGA_NUM=0
+NOL=0
+declare -a LINKARRY
+declare -a MANGA
 #------------------------------------------------------------------
 DRAWLINE(){
 	echo -e "${yellow}================================================================================${plain}"
@@ -13,7 +15,10 @@ DOWN_MULTI(){
 	mkfifo ${temp_fifo}
 	exec 4<>${temp_fifo}
 	rm -f ${temp_fifo}
-	for ((i=0;i<${1};i++)) ; do echo >&4 ; done
+	for ((i=0;i<${1};i++))
+    do 
+        echo >&4
+    done
 }
 GET_E_HENTAI_SRC(){
     wget -qO TEMP.html --no-check-certificate --header="${EHENTAI_COOKIE}" "${COMIC}"
@@ -31,21 +36,15 @@ GET_E_HENTAI_SRC(){
     #Get Pages
     mkdir -p "${TEMP_UNZIP_PATH}${MANGA[${MANGA_NUM}]}" > /dev/null 2>&1
     touch ${WGET_FILE}${MANGA_NUM} > /dev/null 2>&1
-    DOWN_MULTI 25
     echo -e "${yellow}[INFO]${plain}開始分析漫画圖源直連"
     for ((i=1;i<=${PAGES};i++))
     do
-        read -u4
-        {
-            wget -qO TEMP.html --no-check-certificate --header="${EHENTAI_COOKIE}" "$(cat TEMP.html | grep -m 1 -oE "https://${COMIC}/s/[[:alnum:]]+/${GID}-${i}" | head -1)"
-            [[ ! $? == 0 ]] && echo -e "${red}[ERROR]${plain}請求數量過多，取得鏈接錯誤，請檢查網絡&Cookie並匯報BUG" && exit 2
-            LINK=$(cat TEMP.html | grep -m 1 -oE 'img" src="[^"]+') && LINK=${LINK##*\"}
-            echo "wget --no-check-certificate -qO \"${TEMP_UNZIP_PATH}${MANGA[${MANGA_NUM}]}/${i}.${LINK##*.}\" \"${LINK}\" " >> "${WGET_FILE}${MANGA_NUM}"
-            echo >&4
-        }
+        wget -qO TEMP.html --no-check-certificate --header="${EHENTAI_COOKIE}" "$(cat TEMP.html | grep -m 1 -oE "https://${COMIC}/s/[[:alnum:]]+/${GID}-${i}" | head -1)"
+        [[ ! $? == 0 ]] && echo -e "${red}[ERROR]${plain}請求數量過多，取得鏈接錯誤，請檢查網絡&Cookie並匯報BUG" && exit 2
+        LINK=$(cat TEMP.html | grep -m 1 -oE 'img" src="[^"]+') && LINK=${LINK##*\"}
+        echo "wget --no-check-certificate --show-progress -qO \"${TEMP_UNZIP_PATH}${MANGA[${MANGA_NUM}]}/${i}.${LINK##*.}\" \"${LINK}\" " >> "${WGET_FILE}${MANGA_NUM}"
     done
     echo -e "${green}[INFO]${plain}成功写入所有图源链接"
-    exec 4>&-
 }
 GET_N_HENTAI_SRC(){
     wget -qO TEMP.html --no-check-certificate "${COMIC}"
@@ -55,7 +54,7 @@ GET_N_HENTAI_SRC(){
     echo -e "${green}[INFO]${plain}成功分析漫画GID為[${GID}]"
     #Get Gid
     MANGA[${MANGA_NUM}]=$(cat TEMP.html | grep -m 1 -oE "tty[^<]+" | head -1 ) && MANGA[${MANGA_NUM}]=${MANGA[${MANGA_NUM}]#*\>}
-    echo -e "${green}[INFO]${plain}成功分析漫画标题為[${MANGA[${MANGA_NUM}]}]"
+    echo -e "${green}[INFO]${plain}成功分析漫画标题為[${MANGA[${MANGA_NUM}]}]}]"
     #Get Title
     PAGES=$(cat TEMP.html | grep -m 1 -oE 'e\">[[:digit:]]+') && PAGES=${PAGES#*\>}
     echo -e "${green}[INFO]${plain}成功分析漫画页数為[${PAGES}]"
@@ -68,7 +67,7 @@ GET_N_HENTAI_SRC(){
     echo -e "${yellow}[INFO]${plain}開始分析漫画圖源直連"
     for ((i=1;i<=${PAGES};i++))
     do
-        echo "wget --no-check-certificate -qO \"${TEMP_UNZIP_PATH}${MANGA[${MANGA_NUM}]}/${i}.${IMG_TYPE}\" \"https://i.nhentai.net/galleries/${GID}/${i}.${IMG_TYPE}\" " >> "${WGET_FILE}${MANGA_NUM}"
+        echo "wget --no-check-certificate --show-progress -qO \"${TEMP_UNZIP_PATH}${MANGA[${MANGA_NUM}]}/${i}.${IMG_TYPE}\" \"https://i.nhentai.net/galleries/${GID}/${i}.${IMG_TYPE}\" " >> "${WGET_FILE}${MANGA_NUM}"
     done
     echo -e "${green}[INFO]${plain}成功写入所有图源链接"
 }
@@ -81,45 +80,44 @@ NHENTAI_TITLE(){
 
 ASK_MANGA(){
     echo -ne "${green}[INPUT]${plain}請輸入漫畫網址:"
-    read COMIC
-    if [[ ${COMIC} == "" ]]
+    read TEMPLINK
+    if [[ ${TEMPLINK} == "" ]]
     then
         DRAWLINE
         return 1
     else
-        case ${MANGA} in
-            *e-hentai.org*)
-                GET_E_HENTAI_SRC
+        case ${TEMPLINK} in
+            https://e-hentai.org*)
+                LINKARRY[${NOL}]="0:${TEMPLINK}"
                 ;;
-            *exhentai.org*)
+            https://exhentai.org*)
                 if [ -z ${EHENTAI_COOKIE} ]
                 then
                     echo -e "${red}[ERROR]${plain}缺少Cookie..."
                     echo -en "${yellow}[INFO]${plain}請輸入你的ExHentai Cookie [留空Enter跳過下載]:"
-                    read EHENTAI_COOKIE
-                    [ -z ${EHENTAI_COOKIE} ] && return 0
+                    read -r EHENTAI_COOKIE
+                    [ -z ${EHENTAI_COOKIE} ] && return 0 || EHENTAI_COOKIE="Cookie: ${EHENTAI_COOKIE}"
                 fi
-                GET_E_HENTAI_SRC
+                LINKARRY[${NOL}]="0:${TEMPLINK}"
                 ;;
-            *nhentai.net*)
-                GET_N_HENTAI_SRC
+            https://nhentai.net*)
+                LINKARRY[${NOL}]="1:${TEMPLINK}"
                 ;;
                 *)
                 echo -e "${red}[ERROR]${plain}僅支持EHentai/NHentai漫畫，請檢查鏈接"
                 return 0
                 ;;
         esac
-        let "MANGA_NUM++"
+        let "NOL++"
+        echo -e "${green}[INFO]${plain}成功存入链接${LINKARRY[${NOL}]}"
         DRAWLINE
         return 0
     fi
 }
 DOWNLOAD_MANGA(){
-    echo -en "${yellow}[INFO]${plain}<Enter>键确认 & <Ctlr+C>键取消"
-    read
     DRAWLINE
     unset i && i=0
-    for ((i=0;i<${MANGA_NUM};i++))
+    for ((i=0;i<${#MANGA[@]};i++))
     do
         read -u4
         {
@@ -164,7 +162,6 @@ DISPLAY_MANGA_LIST(){
         echo -e "編號[${i}]: ${MANGA[${i}]}"
         let "i++"
     done
-    DRAWLINE
 }
 CONC_MANGA(){
     echo -e "${blue}[INFO]${plain}轉換漫畫為PDF......"
@@ -193,18 +190,70 @@ CONC_MANGA(){
     fi
     echo -e "${green}[INFO]${plain}轉換PDF & 下載成功!"
 }
+WRITEINDATA(){
+    MANGA_NUM=0
+    for COMIC in "${LINKARRY[@]}"
+    do
+        case ${COMIC%%\:*} in
+        0)
+            COMIC=${COMIC#*\:} && GET_E_HENTAI_SRC
+            ;;
+        1)
+            COMIC=${COMIC#*\:} && GET_N_HENTAI_SRC
+            ;;
+        esac
+        let "MANGA_NUM++"
+    done
+    DRAWLINE
+}
+MOVE_MANGA(){
+    if [[ ${OD} == 1 ]]
+    then
+        for i in ${MANGA[@]}
+        do
+            rclone move ${TEMP_UNZIP_PATH}${i} OneDrive:/ -v --transfers=${MAXPARALLEL} --cache-chunk-size 16M --no-traverse --config "${RCLONE}"
+        done
+    else
+        for i in ${MANGA[@]}
+        do
+            rsync --remove-source-files --info=progress2 --no-inc-recursive -zrI ${TEMP_UNZIP_PATH}${i} ${OUT_DIR}
+        done
+    fi
+}
+ASKCONC(){
+    if [ -z CONCPDF ]
+    then
+        while true
+        do
+            echo -en "${yellow}[INFO]${plain}是否需要自动转换漫画为PDF[Y/N]："
+            read CONCPDF
+            case ${CONCPDF} in
+            n|N)
+                CONCPDF=1 && break
+                ;;
+            y|Y)
+                CONCPDF=0 && break
+                ;;
+            *)
+                echo -e "${red}[INFO]${plain}請輸入正確的選項"
+                ;;
+            esac
+        done
+    fi
+}
 #------------------------------------------------------------------
 NHENTAI_TITLE
-rm -rf ${TEMP_DOWN_PATH}/*
+ASKCONC
 while true
 do
     ASK_MANGA
     [[ $? == 1 ]] && break
 done
 ASK_MULTI
-DOWN_MULTI $?
+WRITEINDATA
 DISPLAY_MANGA_LIST
+DOWN_MULTI ${multi}
 DOWNLOAD_MANGA
-CONC_MANGA
+[[ ${CONCPDF} == 1 ]] && CONC_MANGA || MOVE_MANGA
 #unset all var
 IFS=$OLD_IFS
