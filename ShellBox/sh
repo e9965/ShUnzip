@@ -575,7 +575,7 @@ USEROPT(){
 					export OD=0
 				fi
 
-				if [[ ! ${FLAG2} =~ "p" ]] ; then
+				if [[ ${FLAG2} =~ "p" ]] ; then
 					export CONCPDF=1
 				else
 					export CONCPDF=0
