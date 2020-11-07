@@ -353,32 +353,21 @@ READ_CONFIG(){
 		DRAWLINE
 	fi
 }
-WAIT_PASS(){
-	echo -e "${yellow}[INFO]${plain}等待密码文档更新......"
-	i=30
-	while ((${i}>0))
-	do
-		echo -en "剩余[${i}]秒......"
-		sleep 1s
-		echo -en "\r						\r"
-		let "i--"
-	done
-	echo -e "${green}[INFO]${plain}密码文档成功"
-}
 READ_PASSWD(){
 	if [[ ! -f "${PASSWD_FILE}" ]]
 	then
 		echo -e "${blue}[INFO]${plain}準備配置解壓密碼設定......"		
 		if [[ ${USER_OS} == 1 ]]
 		then
-			INI_MKDIR ${COLAB_SOURCE}/conf
-			mv -f ${PASSWD_FILE} ${COLAB_SOURCE}/conf/passwd.conf
-			echo -e "${blue}[INFO]${plain}請將密碼文件上传到 ${green}[${COLAB_SOURCE}/conf/passwd.conf]${plain} - 一行一個密碼 - "
-			echo -e "${blue}[INFO]${plain}可使用GoogleDrive线上文本编辑器"
-			echo -en "${yellow}[INFO]${plain}填寫完成後按任何鍵繼續......"
-			read
-			WAIT_PASS
-			mv -f ${COLAB_SOURCE}/conf/passwd.conf ${PASSWD_FILE}
+			while true
+			do
+				INI_MKDIR ${COLAB_SOURCE}/conf
+				echo -e "${blue}[INFO]${plain}請將密碼文件上传到GoogleDrive/DeepNote"
+				echo -en "${yellow}[INFO]${plain}請輸入密碼文件路徑:"
+				read temp_passwd_file
+				[ -f ${temp_passwd_file} ] && break || echo -e "${red}[INFO]${plain}請輸入正確的路徑"
+			done
+			mv -f ${temp_passwd_file} ${PASSWD_FILE}
 		else
 			touch ${PASSWD_FILE} > /dev/null 2>&1 && echo "#删除此行, 并在此处填上你的密码本, 确保一行一密码" > ${PASSWD_FILE}
 			CONC_PATH ${PASSWD_FILE}
@@ -444,7 +433,7 @@ MENU(){
 	echo -e "${blue}1.自動下載百度雲文件 & 自動解壓${plain}"
 	echo -e "${blue}2.自動下載百度雲文件${plain}"
 	echo -e "${blue}3.本地自動解壓${plain}"
-	echo -e "${blue}4.nHentai.net自動下載 & 轉換為PDF${plain}"
+	echo -e "${blue}4.E-Hentai/ExHentai/nHentai自動下載 & 轉換為PDF${plain}"
 	echo -e "${red}A.重新配置 - 自動解壓配置 -"
 	echo -e "${red}B.重新配置 - 百度雲下載設置 -"
 	echo -e "${red}C.重新配置 - 百度雲Cookies -"
@@ -500,7 +489,10 @@ USEROPT(){
 		  	return 0
 			;;
 		4)
-			source ${SHELL_BIN}nhentai_down.sh
+			echo -ne "${yellow}[INPUT]${plain}可輸入ExHentai Cookie:"
+		  	read -r temp_hentai_cookie
+			[ ! -z ${temp_hentai_cookie} ] && export EHENTAI_COOKIE="${temp_hentai_cookie}"
+			source ${SHELL_BIN}hentai.sh
 			return 0
 			;;
 		a|A)
@@ -600,6 +592,7 @@ do
 	USEROPT
 	Menu_Flag=$?
 	[[ ${AUTO} == 1 ]] && Menu_Flag=2
+	unset ${CHOICE}
 done
 unset i && unset Menu_Flag
 exit 0
