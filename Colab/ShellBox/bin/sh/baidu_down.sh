@@ -32,6 +32,7 @@ DOWN_MULTI(){
 BAIDU_DIR_INI(){
 	bd mkdir ${TEMP_BAIDU_DOWN_PATH} > /dev/null 2>&1
 	bd mv ${TEMP_BAIDU_DOWN_PATH}* /
+	[[ ! $(bd pwd) == ${TEMP_BAIDU_DOWN_PATH} ]] && bd cd ${TEMP_BAIDU_DOWN_PATH}
 	DRAWLINE
 }
 TRANS(){
