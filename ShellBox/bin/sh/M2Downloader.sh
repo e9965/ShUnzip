@@ -10,7 +10,7 @@ export plain='\033[0m'
 export BASE_DIR="/content/M2"
 #Procedure======================================================
 CONC_PDF(){
-    convert || apt-get install imagemagick -y > /dev/null 2>&1 && sed -i 's/1GiB/100GiB/g' /etc/ImageMagick-6/policy.xml
+    convert > /dev/null 2>&1 || apt-get install imagemagick -y > /dev/null 2>&1 && sed -i 's/1GiB/100GiB/g' /etc/ImageMagick-6/policy.xml
     cd ${BASE_DIR} && convert $(find "${BASE_DIR}/src/${CH}" | sort -V) "${CH}.pdf"
 }
 #Main===========================================================
