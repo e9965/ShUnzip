@@ -10,7 +10,7 @@ export plain='\033[0m'
 export BASE_DIR="/content/M2"
 #Procedure======================================================
 CONC_PDF(){
-    convert || apt-get install imagemagick -y > /dev/null 2>&1 
+    convert || apt-get install imagemagick -y > /dev/null 2>&1 && sed -i 's/1GiB/100GiB/g' /etc/ImageMagick-6/policy.xml
     cd ${BASE_DIR} && convert $(find "${BASE_DIR}/src/${CH}" | sort -V) "${CH}.pdf"
 }
 #Main===========================================================
@@ -25,7 +25,7 @@ then
     echo -e "${green}[INPUT]${plain}下載中......"
     while true
     do
-        wget -P ${BASE_DIR}/src/${CH} ${LINK}${NUM}.jpg || break
+        wget --show-progress -qP ${BASE_DIR}/src/${CH} ${LINK}${NUM}.jpg || break
         let "NUM++"
     done
     echo -e "${green}[INPUT]${plain}下載完成，轉換PDF ing"
@@ -34,5 +34,6 @@ else
     echo -e "${red}[ERROR]${plain}請輸入正確的M2 TextBook 地址"
     exit 2
 fi
-echo -e "${green}[INPUT]${plain}轉換完成，請於[${BASE_DIR}]查看相關PDF檔案"
+rm -rf ${BASE_DIR}/src && mv ${BASE_DIR} /content/MyDrive/
+echo -e "${green}[INPUT]${plain}轉換完成"
 exit 0
