@@ -1,5 +1,4 @@
-#/bin/sh
-#By KennyBus
+#/bin/sh && By KennyBus
 IFS=$(echo -en "\n\b")
 NUM=1
 export blue='\033[36m'
@@ -10,8 +9,8 @@ export plain='\033[0m'
 export BASE_DIR="/content/M2"
 #Procedure======================================================
 CONC_PDF(){
-    convert > /dev/null 2>&1 || apt-get install imagemagick -y > /dev/null 2>&1 && sed -i 's/1GiB/100GiB/g' /etc/ImageMagick-6/policy.xml
-    cd ${BASE_DIR} && convert $(find "${BASE_DIR}/src/${CH}" | sort -V) "${CH}.pdf"
+    img2pdf > /dev/null 2>&1 || apt-get install img2pdf -y > /dev/null 2>&1
+    cd ${BASE_DIR} && img2pdf $(find "${BASE_DIR}/src/${CH}" | sort -V) --output "${CH}.pdf"
 }
 #Main===========================================================
 echo -ne "${yellow}[INPUT]${plain}請輸入M2 TextBook 地址:"
