@@ -44,10 +44,24 @@ BAIDU_DIR_INI(){
 	done
 	while true
 	do
-		if [[ $(bd mv ${TEMP_BAIDU_DOWN_PATH}* /) =~ "成功" ]]
+		TEST_SIZE=$(bd mv ${TEMP_BAIDU_DOWN_PATH}* /)
+		if [[ ${TEST_SIZE} =~ "成功" ]]
 		then
 			break
 		else
+			if [[ ${TEST_SIZE} =~ "31061" ]]
+			then
+				while true
+				do
+					if [[ ! $(bd rm ${TEMP_BAIDU_DOWN_PATH}*) =~ "成功" ]]
+					then
+						RETEMPCOOKIE
+					else
+						break
+					fi
+				done
+				break
+			fi
 			RETEMPCOOKIE
 			bd mv ${TEMP_BAIDU_DOWN_PATH}* / > /dev/null 2>&1
 		fi
@@ -167,9 +181,10 @@ RETEMPCOOKIE(){
 		export INITIALIZED=0
 		export COOKIES=${TEST_COOKIE}
 		[[ ${USER_OS} == 1 ]] && [[ -f "/root/colab_baidu" ]] && rm -rf /root/colab_baidu
+		echo "export COOKIES=\"${COOKIES}\"" > ${COOKIES_FILE}
+		echo "export INITIALIZED=0" >> ${COOKIES_FILE}
 		source ${SHELL_BIN}baidu_initialized.sh
-		echo -e "${green}[ INFO ]${plain}临时Cookie保存成功！"
-		echo -e "${green}[ INFO ]${plain}请注意如需要将Cookie写入文件，保留新Cookie到下次运行，需要下载文件完毕后，到主目录重置Cookie"
+		echo -e "${green}[ INFO ]${plain}Cookie保存成功！"
 	fi
 }
 DOWNLOAD(){
