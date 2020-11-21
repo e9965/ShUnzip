@@ -47,8 +47,8 @@ SET_INI_FLAG(){
 }
 INI_PROCESS(){
 BAIDU_INI_TITLE
-SET_DOWN_PARAMETER
 LOGIN
+SET_DOWN_PARAMETER
 }	
 #-------------------------------------------------------------------
 if [[ ${INITIALIZED} == 0 ]]

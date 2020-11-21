@@ -517,6 +517,7 @@ USEROPT(){
 			read
 			CLEAR_BAIDUPCS_GO
 			rm -rf ${COOKIES_FILE}
+			[[ ${USER_OS} == 1 ]] && [[ -f "/root/colab_baidu" ]] && rm -rf /root/colab_baidu
 			[[ ${USER_OS} == 1 ]] && rm -rf ${COLAB_SOURCE}/conf/cookies.conf
 			WARNING_DEL
 			return 1
@@ -594,7 +595,7 @@ USEROPT(){
 #-------------------------------------------------------------------
 while (( ${Menu_Flag} == 0 ))
 do
-	[ -z ${CHOICE} ] && MENU
+	MENU
 	USEROPT
 	Menu_Flag=$?
 	[[ ${AUTO} == 1 ]] && Menu_Flag=2

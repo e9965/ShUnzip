@@ -57,7 +57,6 @@ BAIDU_DIR_INI(){
 			break
 		fi
 	done
-	DRAWLINE
 }
 TRANS(){
 	link=0
@@ -143,11 +142,35 @@ REVERS_PATH(){
 		CONC_FLAG=0
 	fi
 }
+CLEAR_BAIDUPCS_GO(){
+	i=$(bd env|tail -1)
+	i=${i#*\"} && i=${i%\"*}
+	rm -rf ${i}
+}
 DOWNLOAD(){
 	rm -rf ${filetxt} > /dev/null 2>&1
 	echo -e "${yellow}[INFO]${plain}正在獲取下載清單......"
 	DRAWLINE
-	bd match ${TEMP_BAIDU_DOWN_PATH}* > ${filetxt}
+	while true
+	do
+		bd match ${TEMP_BAIDU_DOWN_PATH}* > ${filetxt}
+		TEST_SIZE=$(wc -c ${filetext})
+		if [[ ${TEST_SIZE%%\ *} == 0 ]]
+		then
+			echo -ne "${red}[ ERROR ]${plain}获取下载文件失败,可临时输入新Cookie 或 直接回车重试:"
+			read TEST_SIZE
+			if [[ ! -z ${TEST_SIZE} ]]
+			then
+				CLEAR_BAIDUPCS_GO
+				export INITIALIZED=0
+				export COOKIES=${TEST_SIZE}
+				[[ ${USER_OS} == 1 ]] && [[ -f "/root/colab_baidu" ]] && rm -rf /root/colab_baidu
+				source ${SHELL_BIN}baidu_initialized.sh
+				echo -e "${green}[ INFO ]${plain}临时Cookie保存成功！"
+				echo -e "${green}[ INFO ]${plain}请注意如需要将Cookie写入文件，保留新Cookie到下次运行，需要下载文件完毕后，到主目录重置Cookie"
+			fi
+		fi
+	done 
 	if [[ -f ${filetxt} ]]
 	then
     	fileno=$(wc -l ${filetxt})
