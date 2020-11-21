@@ -1,12 +1,9 @@
 #!/bin/bash
 OLD_IFS=$IFS
 IFS=$(echo -en "\n\b")
-echo -e "${yellow}[INFO]${plain}获取BDSTOKEN中......"
 filetxt=${TEMP_DOWN_PATH}/list.txt
 [ ! -f ${filetxt} ] && touch ${filetxt}
 fileno=0
-[ -z ${KEYCOOKIES} ] && export KEYCOOKIES="$(echo $COOKIES | grep -oE 'BDUSS=([[:alnum:]]|[[:punct:]])+;') $(echo $COOKIES | grep -oE 'STOKEN=[[:alnum:]]+;')"
-[ -z ${BDSTOKEN} ] && export BDSTOKEN=$(curl -s --cookie "${KEYCOOKIES}" "https://pan.baidu.com/disk/home/" | grep -oE 'bdstoken[[:punct:]]+ [[:punct:]]+[[:alnum:]]+') && BDSTOKEN=${BDSTOKEN##*\'}
 [[ ${USER_OS} == 2 ]] && CONC_FLAG=0 || CONC_FLAG=2
 if [[ ${OD} == 1 ]]
 then
@@ -18,6 +15,11 @@ clear
 #-------------------------------------------------------
 DRAWLINE(){
 	echo -e "${yellow}================================================================================${plain}"
+}
+TAKEBDSTOKEN(){
+	echo -e "${yellow}[INFO]${plain}获取BDSTOKEN中......"
+	[ -z ${KEYCOOKIES} ] && export KEYCOOKIES="$(echo $COOKIES | grep -oE 'BDUSS=([[:alnum:]]|[[:punct:]])+;') $(echo $COOKIES | grep -oE 'STOKEN=[[:alnum:]]+;')"
+	[ -z ${BDSTOKEN} ] && export BDSTOKEN=$(curl -s --cookie "${KEYCOOKIES}" "https://pan.baidu.com/disk/home/" | grep -oE 'bdstoken[[:punct:]]+ [[:punct:]]+[[:alnum:]]+') && BDSTOKEN=${BDSTOKEN##*\'}
 }
 DOWN_MULTI(){
 	temp_fifo="/tmp/$$.fifo"
@@ -36,6 +38,7 @@ BAIDU_DIR_INI(){
 		then
 			break
 		else
+			RETEMPCOOKIE
 			bd mkdir ${TEMP_BAIDU_DOWN_PATH} > /dev/null 2>&1
 		fi
 	done
@@ -45,6 +48,7 @@ BAIDU_DIR_INI(){
 		then
 			break
 		else
+			RETEMPCOOKIE
 			bd mv ${TEMP_BAIDU_DOWN_PATH}* / > /dev/null 2>&1
 		fi
 	done
@@ -54,6 +58,7 @@ BAIDU_DIR_INI(){
 		then
 			bd cd ${TEMP_BAIDU_DOWN_PATH} > /dev/null 2>&1
 		else
+			RETEMPCOOKIE
 			break
 		fi
 	done
@@ -103,9 +108,13 @@ BDRAPID(){
 			;;
 		2)
 			echo -e "${red}[INFO]${plain}保存失败，请重新登录"
+			RETEMPCOOKIE
+			TAKEBDSTOKEN
 			;;
 		6)
 			echo -e "${red}[INFO]${plain}Cookie已过期，请重新登录"
+			RETEMPCOOKIE
+			TAKEBDSTOKEN
 			;;
 		4)
 			echo -e "${red}[INFO]${plain}服务器无相关文件，请检查快链"
@@ -118,6 +127,8 @@ BDRAPID(){
 			;;
 		*)
 			echo -e "${red}[INFO]${plain}未知错误"
+			RETEMPCOOKIE
+			TAKEBDSTOKEN
 			;;
 		esac
 		IFS=$(echo -en "\n\b")
@@ -147,6 +158,20 @@ CLEAR_BAIDUPCS_GO(){
 	i=${i#*\"} && i=${i%\"*}
 	rm -rf ${i}
 }
+RETEMPCOOKIE(){
+	echo -ne "${red}[ ERROR ]${plain}操作失败，可临时输入新Cookie 或 直接回车重试:"
+	read TEST_COOKIE
+	if [[ ! -z ${TEST_COOKIE} ]]
+	then
+		CLEAR_BAIDUPCS_GO
+		export INITIALIZED=0
+		export COOKIES=${TEST_COOKIE}
+		[[ ${USER_OS} == 1 ]] && [[ -f "/root/colab_baidu" ]] && rm -rf /root/colab_baidu
+		source ${SHELL_BIN}baidu_initialized.sh
+		echo -e "${green}[ INFO ]${plain}临时Cookie保存成功！"
+		echo -e "${green}[ INFO ]${plain}请注意如需要将Cookie写入文件，保留新Cookie到下次运行，需要下载文件完毕后，到主目录重置Cookie"
+	fi
+}
 DOWNLOAD(){
 	rm -rf ${filetxt} > /dev/null 2>&1
 	echo -e "${yellow}[INFO]${plain}正在獲取下載清單......"
@@ -157,18 +182,9 @@ DOWNLOAD(){
 		TEST_SIZE=$(wc -c ${filetext})
 		if [[ ${TEST_SIZE%%\ *} == 0 ]]
 		then
-			echo -ne "${red}[ ERROR ]${plain}获取下载文件失败,可临时输入新Cookie 或 直接回车重试:"
-			read TEST_SIZE
-			if [[ ! -z ${TEST_SIZE} ]]
-			then
-				CLEAR_BAIDUPCS_GO
-				export INITIALIZED=0
-				export COOKIES=${TEST_SIZE}
-				[[ ${USER_OS} == 1 ]] && [[ -f "/root/colab_baidu" ]] && rm -rf /root/colab_baidu
-				source ${SHELL_BIN}baidu_initialized.sh
-				echo -e "${green}[ INFO ]${plain}临时Cookie保存成功！"
-				echo -e "${green}[ INFO ]${plain}请注意如需要将Cookie写入文件，保留新Cookie到下次运行，需要下载文件完毕后，到主目录重置Cookie"
-			fi
+			
+		else
+			break
 		fi
 	done 
 	if [[ -f ${filetxt} ]]
@@ -223,6 +239,7 @@ DRAWLINE
 }
 #-------------------------------------------------------
 BAIDU_DOWN_TITLE
+TAKEBDSTOKEN
 DOWN_MULTI ${MAXPARALLEL}
 BAIDU_DIR_INI
 while [[ true ]]
