@@ -182,7 +182,7 @@ DOWNLOAD(){
 		TEST_SIZE=$(wc -c ${filetext})
 		if [[ ${TEST_SIZE%%\ *} == 0 ]]
 		then
-			
+			RETEMPCOOKIE
 		else
 			break
 		fi
