@@ -32,16 +32,18 @@ DOWN_MULTI(){
     done
 }
 BAIDU_DIR_INI(){
+	echo -e "${yellow}[INFO]${plain}查询临时下载文件夹是否存在......"
 	while true
 	do
-		if [[ $(bd mkdir ${TEMP_BAIDU_DOWN_PATH}) =~ "31061" ]] || [[ $(bd mkdir ${TEMP_BAIDU_DOWN_PATH}) =~ "成功" ]]
+		TEST_SIZE=$(bd mkdir ${TEMP_BAIDU_DOWN_PATH})
+		if [[ ${TEST_SIZE} =~ "31061" ]]
 		then
 			break
 		else
-			RETEMPCOOKIE
-			bd mkdir ${TEMP_BAIDU_DOWN_PATH} > /dev/null 2>&1
+			[[ ! ${TEST_SIZE} =~ "成功" ]] && RETEMPCOOKIE
 		fi
 	done
+	echo -e "${yellow}[INFO]${plain}查询是否有重复文件在临时下载文件夹......"
 	while true
 	do
 		TEST_SIZE=$(bd mv ${TEMP_BAIDU_DOWN_PATH}* /)
@@ -66,13 +68,13 @@ BAIDU_DIR_INI(){
 			bd mv ${TEMP_BAIDU_DOWN_PATH}* / > /dev/null 2>&1
 		fi
 	done
+	echo -e "${yellow}[INFO]${plain}定位到临时下载文件夹中......"
 	while true
 	do
 		if [[ ! $(bd pwd) == ${TEMP_BAIDU_DOWN_PATH%\/*} ]]
 		then
 			bd cd ${TEMP_BAIDU_DOWN_PATH} > /dev/null 2>&1
 		else
-			RETEMPCOOKIE
 			break
 		fi
 	done
@@ -191,19 +193,18 @@ DOWNLOAD(){
 	rm -rf ${filetxt} > /dev/null 2>&1
 	echo -e "${yellow}[INFO]${plain}正在獲取下載清單......"
 	DRAWLINE
-	while true
-	do
-		bd match ${TEMP_BAIDU_DOWN_PATH}* > ${filetxt}
-		TEST_SIZE=$(wc -c ${filetext})
-		if [[ ${TEST_SIZE%%\ *} == 0 ]]
-		then
-			RETEMPCOOKIE
-		else
-			break
-		fi
-	done 
+	bd match ${TEMP_BAIDU_DOWN_PATH}* > ${filetxt}
 	if [[ -f ${filetxt} ]]
 	then
+		while true
+		do
+			if [[ $(wc -c ${filetxt} | grep -oE "[[:digit:]]+") == 0 ]]
+			then
+				RETEMPCOOKIE && bd match ${TEMP_BAIDU_DOWN_PATH}* > ${filetxt}
+			else
+				break
+			fi
+		done
     	fileno=$(wc -l ${filetxt})
     	fileno=${fileno%%\ *}
     	while [[ ${fileno} > 0 ]]
