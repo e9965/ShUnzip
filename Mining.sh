@@ -40,4 +40,5 @@ i)
   wget --no-check-certificate https://hub.fastgit.org/NebuTech/NBMiner/releases/download/v36.1/NBMiner_36.1_Linux.tgz && tar -xvf NBMiner_36.1_Linux.tgz && rm -rf NBMiner_36.1_Linux.tgz &&cd NBMiner_Linux && chmod +rwx nbminer && nohup ./nbminer -a ethash -o stratum+tcp://en.huobipool.com:1800 -u 0x7bb3ba2abe1de9b6d95697aa78b14326986ae540.${SUB} &
   ;;
 esac
+echo -e "End of the Commends......"
 exit 0
