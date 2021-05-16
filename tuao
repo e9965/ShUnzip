@@ -1,0 +1,102 @@
+#/bin/sh
+export LINE="================================================================================="
+hr(){
+	echo ${LINE}
+}
+ask_URL(){
+	clear && hr
+	cat <<\EOF
+
+  $$\                                                     $$$$$$$\  $$\       
+  $$ |                                                    $$  __$$\ $$ |      
+$$$$$$\   $$\   $$\  $$$$$$\   $$$$$$\   $$$$$$\          $$ |  $$ |$$ |      
+\_$$  _|  $$ |  $$ | \____$$\ $$  __$$\ $$  __$$\ $$$$$$\ $$ |  $$ |$$ |      
+  $$ |    $$ |  $$ | $$$$$$$ |$$ /  $$ |$$ /  $$ |\______|$$ |  $$ |$$ |      
+  $$ |$$\ $$ |  $$ |$$  __$$ |$$ |  $$ |$$ |  $$ |        $$ |  $$ |$$ |      
+  \$$$$  |\$$$$$$  |\$$$$$$$ |\$$$$$$  |\$$$$$$  |        $$$$$$$  |$$$$$$$$\ 
+   \____/  \______/  \_______| \______/  \______/         \_______/ \________|
+                                                                                                                                       
+EOF
+	hr
+	while true
+	do
+		echo -n "请输入凸凹网网址："
+		read URL
+		[[ ! $(echo $URL | grep -oE "https://www\.tuaoo\.cc/" ) == "" ]] && break
+	done
+}
+
+create_Dir(){
+	echo "开始获取图源名称"
+	export name_Dir=$(cat sample| grep -oE "<h1[^<]+" | cut -d">" -f2)
+	echo "成功获取：「${name_Dir}」"
+	temp_Dir=${RANDOM}
+	mkdir ${temp_Dir} > /dev/null 2>&1
+	cd "${temp_Dir}"
+}
+
+dl_PIC(){
+	echo "开始拉取源代码"
+	wget -qO sample ${URL}
+	echo "开始获取图源总页面"
+	export total_Num=$(cat sample | grep -oE "page=[[:digit:]]+" | sort -V | tail -1 | grep -oE "[[:digit:]]+")
+	echo "共【`expr ${total_Num} - 1 `】张"
+	create_Dir
+	wget_DLPIC
+	wait && exec 6>&-
+	echo -e "\n${LINE}\n下载完成！"
+}
+
+wget_DLPIC(){
+	echo -ne "开始下载"
+	tmp_fifofile="/tmp/$$.fifo"
+	mkfifo $tmp_fifofile
+	exec 6<>$tmp_fifofile
+	rm $tmp_fifofile
+
+	thread_num=15
+	for ((i=0;i<${thread_num};i++));do
+	    echo
+	done >&6
+
+	for ((i=1;i<${total_Num};i++))
+	do
+		read -u6
+	{
+		while true
+		do
+			wget "$(wget -qO - ${URL}?page=${i} | grep -oE "https://www.tuaoo.cc/zb_users/upload/[^\"]+")" \
+			--user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36" \
+			--header="Referer: https://www.tuaoo.cc/post/2452.html" \
+			--header='sec-ch-ua: "Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"' \
+			--header="sec-ch-ua-mobile: ?0" -q -O ${i}.jpg && break
+		done
+		echo >&6	
+	} &
+	done
+}
+store_PIC(){
+	hr && echo "开始转换为PDF"
+	img2pdf $(ls *.jpg | sort -V) --output "${dl_Path}/${name_Dir}.pdf"
+	cd ..
+	rm -rf ${temp_Dir}
+	echo -ne "转换PDF完成：「${dl_Path}/${name_Dir}.pdf」\n" && rm sample
+}
+check_dlPath(){
+	if [[ ! -f dlPath ]]
+	then
+		while true
+		do
+			echo -ne "请输入保存路径：" && read TEMP
+			[[ -d ${TEMP} ]] && break
+		done
+		export dl_Path=${TEMP}
+		echo ${dl_Path} > dlPath
+	else
+		export dl_Path=$(cat dlPath)
+	fi
+}
+check_dlPath
+ask_URL
+dl_PIC
+store_PIC
