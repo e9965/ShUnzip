@@ -7,14 +7,13 @@ ask_URL(){
 	clear && hr
 	cat <<\EOF
 
-  $$\                                                     $$$$$$$\  $$\       
-  $$ |                                                    $$  __$$\ $$ |      
-$$$$$$\   $$\   $$\  $$$$$$\   $$$$$$\   $$$$$$\          $$ |  $$ |$$ |      
-\_$$  _|  $$ |  $$ | \____$$\ $$  __$$\ $$  __$$\ $$$$$$\ $$ |  $$ |$$ |      
-  $$ |    $$ |  $$ | $$$$$$$ |$$ /  $$ |$$ /  $$ |\______|$$ |  $$ |$$ |      
-  $$ |$$\ $$ |  $$ |$$  __$$ |$$ |  $$ |$$ |  $$ |        $$ |  $$ |$$ |      
-  \$$$$  |\$$$$$$  |\$$$$$$$ |\$$$$$$  |\$$$$$$  |        $$$$$$$  |$$$$$$$$\ 
-   \____/  \______/  \_______| \______/  \______/         \_______/ \________|
+      _ _   _____ _____ _____ 
+     | | | |  __ \_   _/ ____|
+   __| | | | |__) || || |     
+  / _` | | |  ___/ | || |     
+ | (_| | | | |    _| || |____ 
+  \__,_|_| |_|   |_____\_____|
+                              
                                                                                                                                        
 EOF
 	hr
@@ -96,6 +95,30 @@ check_dlPath(){
 		export dl_Path=$(cat dlPath)
 	fi
 }
+read_Proj(){
+	projects=($(grep -oE "[[[:alnum:]]]" config))
+}
+conf_Proj(){
+	
+}
+read_Header(){
+
+}
+read_Ref(){
+
+}
+read_Config(){
+	if [[ -f config ]]
+	then
+		read_Proj
+		conf_Proj
+		read_Header
+		read_Ref
+	else
+		echo -ne "No Config File !\nPlease edit Config File......" && halt
+	fi
+}
+read_Config
 check_dlPath
 ask_URL
 dl_PIC
